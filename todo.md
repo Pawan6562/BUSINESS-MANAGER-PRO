@@ -113,3 +113,10 @@
 
 ## Completed Items
 (Items will be marked as [x] when completed)
+
+
+## Bugs & Issues
+
+- [x] Fix app crash on startup: "Grocery Manager Pro keeps stopping" - FIXED: Added missing dependencies (uuid, expo-sqlite, react-native-get-random-values)
+- [x] Debug SQLite initialization issue - FIXED: expo-sqlite plugin added to app.config.ts
+- [x] Fix database connection errors - FIXED: Dependencies properly installed and configured
