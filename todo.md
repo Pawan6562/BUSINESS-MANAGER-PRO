@@ -167,3 +167,14 @@
 - [x] Fix barcode detection and product lookup
 - [x] Make cart visible and accessible on same screen
 - [x] Optimize for mobile portrait orientation
+
+
+## New Features (Current Priority)
+
+- [x] Swap Sales screen layout: Cart at top, Products below
+- [x] Add Quick Discount Presets (5%, 10%, 15%, 20%) buttons
+- [x] Create Settings screen with customization options
+- [x] Add Settings icon to Dashboard (top-right)
+- [x] Implement Expense Tracking interface
+- [x] Add Expense database schema
+- [ ] Integrate expenses into profit calculations (next phase)

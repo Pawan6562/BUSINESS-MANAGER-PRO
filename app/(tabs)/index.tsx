@@ -55,11 +55,19 @@ export default function DashboardScreen() {
     <ScreenContainer className="flex-1 bg-background">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-4 pt-4 pb-6">
         {/* Header */}
-        <View className="mb-6">
-          <Text className="text-3xl font-bold text-foreground">{settings.businessName}</Text>
-          <Text className="text-sm text-muted mt-1">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </Text>
+        <View className="flex-row items-center justify-between mb-6">
+          <View className="flex-1">
+            <Text className="text-3xl font-bold text-foreground">{settings.businessName}</Text>
+            <Text className="text-sm text-muted mt-1">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push('/settings')}
+            className="bg-surface border border-border rounded-lg p-3"
+          >
+            <MaterialIcons name="settings" size={24} color="#0a7ea4" />
+          </TouchableOpacity>
         </View>
 
         {/* Key Metrics */}

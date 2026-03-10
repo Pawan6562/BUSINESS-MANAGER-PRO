@@ -218,6 +218,11 @@ export default function SalesScreen() {
     };
   };
 
+  // Apply quick discount
+  const applyQuickDiscount = (discountPercent: number) => {
+    setDiscount(discountPercent);
+  };
+
   // Process checkout
   const handleCheckout = async () => {
     if (cart.length === 0) {
@@ -292,87 +297,7 @@ export default function SalesScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
-        <View className="px-4 pb-4">
-          <View className="flex-row items-center bg-surface border border-border rounded-lg px-3 py-3">
-            <MaterialIcons name="search" size={20} color="#687076" />
-            <TextInput
-              placeholder="Search products..."
-              placeholderTextColor="#9BA1A6"
-              value={searchQuery}
-              onChangeText={handleSearch}
-              className="flex-1 ml-2 text-foreground"
-            />
-          </View>
-        </View>
-
-        {/* Products List */}
-        <View className="px-4 pb-4">
-          <Text className="text-sm font-semibold text-muted mb-3">Available Products</Text>
-          {filteredProducts.length === 0 ? (
-            <View className="items-center py-8">
-              <MaterialIcons name="inbox" size={48} color="#687076" />
-              <Text className="text-muted text-center mt-2">No products found</Text>
-            </View>
-          ) : (
-            filteredProducts.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                onPress={() => addToCart(product)}
-                disabled={product.quantity <= 0}
-                className={`mb-3 p-4 rounded-lg border flex-row justify-between items-center ${
-                  product.quantity <= 0
-                    ? 'bg-surface/50 border-border opacity-50'
-                    : 'bg-surface border-border'
-                }`}
-              >
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold text-foreground">{product.name}</Text>
-                  <View className="flex-row items-center gap-2 mt-1">
-                    <Text className="text-sm font-bold text-primary">
-                      {settings.currency}{product.sellingPrice.toFixed(2)}
-                    </Text>
-                    <View className="flex-row items-center gap-1">
-                      <MaterialIcons
-                        name={
-                          product.quantity <= 0
-                            ? 'cancel'
-                            : product.quantity <= product.reorderLevel
-                            ? 'warning'
-                            : 'check-circle'
-                        }
-                        size={14}
-                        color={
-                          product.quantity <= 0
-                            ? '#EF4444'
-                            : product.quantity <= product.reorderLevel
-                            ? '#F59E0B'
-                            : '#22C55E'
-                        }
-                      />
-                      <Text className="text-xs text-muted">
-                        {product.quantity} {product.unit}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                {product.quantity > 0 && (
-                  <TouchableOpacity
-                    onPress={() => addToCart(product)}
-                    className="bg-primary rounded-lg p-3 ml-3"
-                  >
-                    <MaterialIcons name="add" size={20} color="#fff" />
-                  </TouchableOpacity>
-                )}
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-
-        {/* Divider */}
-        <View className="h-1 bg-border mx-4 mb-4" />
-
-        {/* Cart Section */}
+        {/* ========== CART SECTION AT TOP ========== */}
         <View className="px-4 pb-4">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-lg font-bold text-foreground">
@@ -486,6 +411,32 @@ export default function SalesScreen() {
                 </View>
               </View>
 
+              {/* Quick Discount Buttons */}
+              <View className="mb-3">
+                <Text className="text-sm font-semibold text-foreground mb-2">Quick Discount</Text>
+                <View className="flex-row gap-2 flex-wrap">
+                  {[5, 10, 15, 20].map((discountPercent) => (
+                    <TouchableOpacity
+                      key={discountPercent}
+                      onPress={() => applyQuickDiscount(discountPercent)}
+                      className={`flex-1 py-2 px-3 rounded-lg border ${
+                        discount === discountPercent
+                          ? 'bg-primary border-primary'
+                          : 'bg-surface border-border'
+                      }`}
+                    >
+                      <Text
+                        className={`text-center font-bold text-sm ${
+                          discount === discountPercent ? 'text-white' : 'text-foreground'
+                        }`}
+                      >
+                        {discountPercent}%
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
               {/* Checkout Button */}
               <TouchableOpacity
                 onPress={() => setShowCheckout(true)}
@@ -495,6 +446,84 @@ export default function SalesScreen() {
                 <Text className="text-white font-bold ml-2 text-lg">Checkout</Text>
               </TouchableOpacity>
             </>
+          )}
+        </View>
+
+        {/* Divider */}
+        <View className="h-1 bg-border mx-4 mb-4" />
+
+        {/* ========== PRODUCTS SECTION BELOW ========== */}
+        <View className="px-4 pb-4">
+          {/* Search Bar */}
+          <View className="flex-row items-center bg-surface border border-border rounded-lg px-3 py-3 mb-4">
+            <MaterialIcons name="search" size={20} color="#687076" />
+            <TextInput
+              placeholder="Search products..."
+              placeholderTextColor="#9BA1A6"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              className="flex-1 ml-2 text-foreground"
+            />
+          </View>
+
+          <Text className="text-sm font-semibold text-muted mb-3">Available Products</Text>
+          {filteredProducts.length === 0 ? (
+            <View className="items-center py-8">
+              <MaterialIcons name="inbox" size={48} color="#687076" />
+              <Text className="text-muted text-center mt-2">No products found</Text>
+            </View>
+          ) : (
+            filteredProducts.map((product) => (
+              <TouchableOpacity
+                key={product.id}
+                onPress={() => addToCart(product)}
+                disabled={product.quantity <= 0}
+                className={`mb-3 p-4 rounded-lg border flex-row justify-between items-center ${
+                  product.quantity <= 0
+                    ? 'bg-surface/50 border-border opacity-50'
+                    : 'bg-surface border-border'
+                }`}
+              >
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-foreground">{product.name}</Text>
+                  <View className="flex-row items-center gap-2 mt-1">
+                    <Text className="text-sm font-bold text-primary">
+                      {settings.currency}{product.sellingPrice.toFixed(2)}
+                    </Text>
+                    <View className="flex-row items-center gap-1">
+                      <MaterialIcons
+                        name={
+                          product.quantity <= 0
+                            ? 'cancel'
+                            : product.quantity <= product.reorderLevel
+                            ? 'warning'
+                            : 'check-circle'
+                        }
+                        size={14}
+                        color={
+                          product.quantity <= 0
+                            ? '#EF4444'
+                            : product.quantity <= product.reorderLevel
+                            ? '#F59E0B'
+                            : '#22C55E'
+                        }
+                      />
+                      <Text className="text-xs text-muted">
+                        {product.quantity} {product.unit}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                {product.quantity > 0 && (
+                  <TouchableOpacity
+                    onPress={() => addToCart(product)}
+                    className="bg-primary rounded-lg p-3 ml-3"
+                  >
+                    <MaterialIcons name="add" size={20} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            ))
           )}
         </View>
       </ScrollView>
