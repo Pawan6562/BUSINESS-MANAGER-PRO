@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Dimensions,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
@@ -16,6 +17,7 @@ import { getAllProducts, addSale, Product, Sale, SaleItem } from '@/lib/database
 import { useAppStore } from '@/lib/store';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 interface CartItem extends SaleItem {
   availableStock: number;
@@ -33,9 +35,10 @@ export default function SalesScreen() {
   const [taxRate, setTaxRate] = useState(settings.taxPercentage || 0);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [showCheckout, setShowCheckout] = useState(false);
-  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
-  const [barcodeInput, setBarcodeInput] = useState('');
-  const [recentItems, setRecentItems] = useState<Product[]>([]);
+  const [showCamera, setShowCamera] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const [scannedBarcodes, setScannedBarcodes] = useState<Set<string>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
@@ -57,29 +60,45 @@ export default function SalesScreen() {
     }
   };
 
-  // Search products by name or barcode
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query.trim() === '') {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.barcode?.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredProducts(filtered);
+  // Request camera permission
+  const handleCameraPermission = async () => {
+    if (!permission?.granted) {
+      const { granted } = await requestPermission();
+      if (!granted) {
+        Alert.alert('Permission Required', 'Camera permission is required to scan barcodes');
+        return;
+      }
     }
+    setShowCamera(true);
   };
 
-  // Barcode scanning
-  const handleBarcodeScan = async (barcode: string) => {
+  // Handle barcode scan
+  const handleBarcodeScanned = (result: any) => {
+    const barcode = result.data;
+
+    // Prevent duplicate scans within 1 second
+    if (scannedBarcodes.has(barcode)) {
+      return;
+    }
+
+    setScannedBarcodes((prev) => {
+      const updated = new Set(prev);
+      updated.add(barcode);
+      setTimeout(() => {
+        setScannedBarcodes((current) => {
+          const next = new Set(current);
+          next.delete(barcode);
+          return next;
+        });
+      }, 1000);
+      return updated;
+    });
+
     const product = products.find((p) => p.barcode === barcode.trim());
 
     if (!product) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('Product Not Found', `No product found with barcode: ${barcode}`);
-      setBarcodeInput('');
       return;
     }
 
@@ -101,13 +120,22 @@ export default function SalesScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    // Add to recent items
-    setRecentItems((prev) => {
-      const filtered = prev.filter((p) => p.id !== product.id);
-      return [product, ...filtered].slice(0, 5);
-    });
+    setShowCamera(false);
+  };
 
-    setBarcodeInput('');
+  // Search products by name or barcode
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setFilteredProducts(products);
+    } else {
+      const filtered = products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query.toLowerCase()) ||
+          p.barcode?.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    }
   };
 
   // Add product to cart
@@ -117,16 +145,26 @@ export default function SalesScreen() {
       return;
     }
 
-    const newItem: CartItem = {
-      productId: product.id,
-      productName: product.name,
-      quantity: 1,
-      unitPrice: product.sellingPrice,
-      subtotal: product.sellingPrice,
-      availableStock: product.quantity,
-    };
+    const existingItem = cart.find((item) => item.productId === product.id);
 
-    setCart([...cart, newItem]);
+    if (existingItem) {
+      if (existingItem.quantity < product.quantity) {
+        updateCartItemQuantity(product.id, existingItem.quantity + 1);
+      } else {
+        Alert.alert('Stock Limit', `Only ${product.quantity} units available`);
+      }
+    } else {
+      const newItem: CartItem = {
+        productId: product.id,
+        productName: product.name,
+        quantity: 1,
+        unitPrice: product.sellingPrice,
+        subtotal: product.sellingPrice,
+        availableStock: product.quantity,
+      };
+      setCart([...cart, newItem]);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
   };
 
   // Update cart item quantity
@@ -207,16 +245,16 @@ export default function SalesScreen() {
 
       Alert.alert('Sale Completed', `Total: ${settings.currency}${total.toFixed(2)}`, [
         {
-          text: 'View Receipt',
-          onPress: () => router.push('/sales-history'),
-        },
-        {
           text: 'New Sale',
           onPress: () => {
             setCart([]);
             setDiscount(0);
             setShowCheckout(false);
           },
+        },
+        {
+          text: 'View Receipt',
+          onPress: () => router.push('/sales-history'),
         },
       ]);
 
@@ -241,185 +279,181 @@ export default function SalesScreen() {
 
   return (
     <ScreenContainer className="flex-1 bg-background">
-      <View className="flex-1 flex-row">
-        {/* Left: Product Selection */}
-        <View className="flex-1">
-          <View className="px-4 pt-4 pb-2">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-2xl font-bold text-foreground">Sales</Text>
-              <TouchableOpacity
-                onPress={() => setShowBarcodeModal(true)}
-                className="bg-primary rounded-lg px-3 py-2"
-              >
-                <MaterialIcons name="qr-code-scanner" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View className="px-4 pt-4 pb-3 flex-row items-center justify-between">
+          <Text className="text-3xl font-bold text-foreground">Sales</Text>
+          <TouchableOpacity
+            onPress={handleCameraPermission}
+            className="bg-primary rounded-lg px-4 py-3 flex-row items-center gap-2"
+          >
+            <MaterialIcons name="qr-code-scanner" size={20} color="#fff" />
+            <Text className="text-white font-semibold">Scan</Text>
+          </TouchableOpacity>
+        </View>
 
-            {/* Search Bar */}
-            <View className="flex-row items-center bg-surface border border-border rounded-lg px-3 py-2 mb-4">
-              <MaterialIcons name="search" size={20} color="#687076" />
-              <TextInput
-                placeholder="Search products..."
-                placeholderTextColor="#9BA1A6"
-                value={searchQuery}
-                onChangeText={handleSearch}
-                className="flex-1 ml-2 text-foreground"
-              />
-            </View>
-
-            {/* Recent Items */}
-            {recentItems.length > 0 && (
-              <View className="mb-4">
-                <Text className="text-sm font-semibold text-muted mb-2">Recent Items</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="gap-2">
-                  {recentItems.map((item) => (
-                    <TouchableOpacity
-                      key={item.id}
-                      onPress={() => addToCart(item)}
-                      className="bg-primary/10 border border-primary rounded-lg px-3 py-2 min-w-max"
-                    >
-                      <Text className="text-primary font-semibold text-xs">{item.name}</Text>
-                      <Text className="text-primary text-xs">
-                        {settings.currency}{item.sellingPrice.toFixed(2)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
+        {/* Search Bar */}
+        <View className="px-4 pb-4">
+          <View className="flex-row items-center bg-surface border border-border rounded-lg px-3 py-3">
+            <MaterialIcons name="search" size={20} color="#687076" />
+            <TextInput
+              placeholder="Search products..."
+              placeholderTextColor="#9BA1A6"
+              value={searchQuery}
+              onChangeText={handleSearch}
+              className="flex-1 ml-2 text-foreground"
+            />
           </View>
+        </View>
 
-          {/* Products List */}
-          <FlatList
-            data={filteredProducts}
-            renderItem={({ item }) => (
+        {/* Products List */}
+        <View className="px-4 pb-4">
+          <Text className="text-sm font-semibold text-muted mb-3">Available Products</Text>
+          {filteredProducts.length === 0 ? (
+            <View className="items-center py-8">
+              <MaterialIcons name="inbox" size={48} color="#687076" />
+              <Text className="text-muted text-center mt-2">No products found</Text>
+            </View>
+          ) : (
+            filteredProducts.map((product) => (
               <TouchableOpacity
-                onPress={() => addToCart(item)}
-                disabled={item.quantity <= 0}
-                className={`mx-4 mb-3 p-4 rounded-lg border ${
-                  item.quantity <= 0
+                key={product.id}
+                onPress={() => addToCart(product)}
+                disabled={product.quantity <= 0}
+                className={`mb-3 p-4 rounded-lg border flex-row justify-between items-center ${
+                  product.quantity <= 0
                     ? 'bg-surface/50 border-border opacity-50'
                     : 'bg-surface border-border'
                 }`}
               >
-                <View className="flex-row justify-between items-start">
-                  <View className="flex-1">
-                    <Text className="text-lg font-semibold text-foreground">{item.name}</Text>
-                    <Text className="text-sm text-muted">
-                      {settings.currency}{item.sellingPrice.toFixed(2)}
+                <View className="flex-1">
+                  <Text className="text-lg font-semibold text-foreground">{product.name}</Text>
+                  <View className="flex-row items-center gap-2 mt-1">
+                    <Text className="text-sm font-bold text-primary">
+                      {settings.currency}{product.sellingPrice.toFixed(2)}
                     </Text>
-                    <View className="flex-row items-center mt-1">
+                    <View className="flex-row items-center gap-1">
                       <MaterialIcons
                         name={
-                          item.quantity <= 0
+                          product.quantity <= 0
                             ? 'cancel'
-                            : item.quantity <= item.reorderLevel
+                            : product.quantity <= product.reorderLevel
                             ? 'warning'
                             : 'check-circle'
                         }
-                        size={16}
+                        size={14}
                         color={
-                          item.quantity <= 0
+                          product.quantity <= 0
                             ? '#EF4444'
-                            : item.quantity <= item.reorderLevel
+                            : product.quantity <= product.reorderLevel
                             ? '#F59E0B'
                             : '#22C55E'
                         }
                       />
-                      <Text className="text-xs text-muted ml-1">
-                        Stock: {item.quantity} {item.unit}
+                      <Text className="text-xs text-muted">
+                        {product.quantity} {product.unit}
                       </Text>
                     </View>
                   </View>
-                  {item.quantity > 0 && (
-                    <TouchableOpacity
-                      onPress={() => addToCart(item)}
-                      className="bg-primary rounded-lg p-2"
-                    >
-                      <MaterialIcons name="add" size={20} color="#fff" />
-                    </TouchableOpacity>
-                  )}
                 </View>
+                {product.quantity > 0 && (
+                  <TouchableOpacity
+                    onPress={() => addToCart(product)}
+                    className="bg-primary rounded-lg p-3 ml-3"
+                  >
+                    <MaterialIcons name="add" size={20} color="#fff" />
+                  </TouchableOpacity>
+                )}
               </TouchableOpacity>
-            )}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          />
+            ))
+          )}
         </View>
 
-        {/* Right: Cart Summary */}
-        <View className="w-80 bg-surface border-l border-border flex-col">
-          <View className="px-4 pt-4 pb-2">
-            <Text className="text-2xl font-bold text-foreground">Cart</Text>
-            <Text className="text-sm text-muted">
-              {cart.length} item{cart.length !== 1 ? 's' : ''}
+        {/* Divider */}
+        <View className="h-1 bg-border mx-4 mb-4" />
+
+        {/* Cart Section */}
+        <View className="px-4 pb-4">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-lg font-bold text-foreground">
+              Cart ({cart.length} item{cart.length !== 1 ? 's' : ''})
             </Text>
+            {cart.length > 0 && (
+              <TouchableOpacity onPress={() => setCart([])}>
+                <MaterialIcons name="delete-outline" size={20} color="#EF4444" />
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Cart Items */}
-          <ScrollView className="flex-1 px-4">
-            {cart.length === 0 ? (
-              <View className="flex-1 items-center justify-center py-8">
-                <MaterialIcons name="shopping-cart" size={48} color="#687076" />
-                <Text className="text-muted text-center mt-4">Cart is empty</Text>
-              </View>
-            ) : (
-              cart.map((item) => (
+          {cart.length === 0 ? (
+            <View className="bg-surface border border-border rounded-lg p-6 items-center">
+              <MaterialIcons name="shopping-cart" size={40} color="#687076" />
+              <Text className="text-muted text-center mt-2">Cart is empty. Add items to get started.</Text>
+            </View>
+          ) : (
+            <>
+              {cart.map((item) => (
                 <View
                   key={item.productId}
-                  className="bg-background border border-border rounded-lg p-3 mb-3"
+                  className="bg-surface border border-border rounded-lg p-4 mb-3"
                 >
-                  <View className="flex-row justify-between items-start mb-2">
-                    <Text className="font-semibold text-foreground flex-1">{item.productName}</Text>
+                  <View className="flex-row justify-between items-start mb-3">
+                    <View className="flex-1">
+                      <Text className="font-semibold text-foreground text-base">{item.productName}</Text>
+                      <Text className="text-sm text-muted mt-1">
+                        {settings.currency}{item.unitPrice.toFixed(2)} × {item.quantity}
+                      </Text>
+                    </View>
                     <TouchableOpacity onPress={() => removeFromCart(item.productId)}>
-                      <MaterialIcons name="close" size={20} color="#EF4444" />
+                      <MaterialIcons name="close" size={24} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
 
-                  <Text className="text-sm text-muted mb-2">
-                    {settings.currency}{item.unitPrice.toFixed(2)} x {item.quantity} ={' '}
-                    {settings.currency}{item.subtotal.toFixed(2)}
-                  </Text>
-
                   {/* Quantity Controls */}
-                  <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center justify-between mb-3">
                     <TouchableOpacity
                       onPress={() => updateCartItemQuantity(item.productId, item.quantity - 1)}
-                      className="bg-error/10 rounded-lg px-3 py-1"
+                      className="bg-error/10 rounded-lg px-4 py-2"
                     >
-                      <Text className="text-error font-bold">−</Text>
+                      <Text className="text-error font-bold text-lg">−</Text>
                     </TouchableOpacity>
 
-                    <Text className="text-foreground font-semibold">{item.quantity}</Text>
+                    <Text className="text-foreground font-bold text-lg">{item.quantity}</Text>
 
                     <TouchableOpacity
                       onPress={() => updateCartItemQuantity(item.productId, item.quantity + 1)}
                       disabled={item.quantity >= item.availableStock}
-                      className={`rounded-lg px-3 py-1 ${
-                        item.quantity >= item.availableStock
-                          ? 'bg-muted/20'
-                          : 'bg-success/10'
+                      className={`rounded-lg px-4 py-2 ${
+                        item.quantity >= item.availableStock ? 'bg-muted/20' : 'bg-success/10'
                       }`}
                     >
-                      <Text className={item.quantity >= item.availableStock ? 'text-muted' : 'text-success font-bold'}>
+                      <Text
+                        className={`font-bold text-lg ${
+                          item.quantity >= item.availableStock ? 'text-muted' : 'text-success'
+                        }`}
+                      >
                         +
                       </Text>
                     </TouchableOpacity>
                   </View>
 
+                  {/* Item Total */}
+                  <View className="flex-row justify-between items-center border-t border-border pt-2">
+                    <Text className="text-muted text-sm">Item Total</Text>
+                    <Text className="font-bold text-primary text-base">
+                      {settings.currency}{item.subtotal.toFixed(2)}
+                    </Text>
+                  </View>
+
                   {item.quantity >= item.availableStock && (
-                    <Text className="text-xs text-warning mt-1">Max stock reached</Text>
+                    <Text className="text-xs text-warning mt-2">⚠ Max stock reached</Text>
                   )}
                 </View>
-              ))
-            )}
-          </ScrollView>
+              ))}
 
-          {/* Totals and Checkout */}
-          {cart.length > 0 && (
-            <View className="px-4 py-4 border-t border-border">
-              <View className="space-y-2 mb-4">
-                <View className="flex-row justify-between">
+              {/* Totals */}
+              <View className="bg-background border border-border rounded-lg p-4 mb-3">
+                <View className="flex-row justify-between mb-2">
                   <Text className="text-muted">Subtotal</Text>
                   <Text className="font-semibold text-foreground">
                     {settings.currency}{subtotal.toFixed(2)}
@@ -427,7 +461,7 @@ export default function SalesScreen() {
                 </View>
 
                 {discount > 0 && (
-                  <View className="flex-row justify-between">
+                  <View className="flex-row justify-between mb-2">
                     <Text className="text-muted">Discount ({discount}%)</Text>
                     <Text className="font-semibold text-success">
                       -{settings.currency}{discountAmount.toFixed(2)}
@@ -436,7 +470,7 @@ export default function SalesScreen() {
                 )}
 
                 {taxRate > 0 && (
-                  <View className="flex-row justify-between">
+                  <View className="flex-row justify-between mb-2">
                     <Text className="text-muted">Tax ({taxRate}%)</Text>
                     <Text className="font-semibold text-foreground">
                       {settings.currency}{taxAmount.toFixed(2)}
@@ -444,7 +478,7 @@ export default function SalesScreen() {
                   </View>
                 )}
 
-                <View className="flex-row justify-between border-t border-border pt-2 mt-2">
+                <View className="flex-row justify-between border-t border-border pt-3 mt-3">
                   <Text className="text-lg font-bold text-foreground">Total</Text>
                   <Text className="text-2xl font-bold text-primary">
                     {settings.currency}{total.toFixed(2)}
@@ -452,56 +486,52 @@ export default function SalesScreen() {
                 </View>
               </View>
 
+              {/* Checkout Button */}
               <TouchableOpacity
                 onPress={() => setShowCheckout(true)}
-                className="bg-primary rounded-lg py-4 flex-row items-center justify-center"
+                className="bg-primary rounded-lg py-4 flex-row items-center justify-center mb-3"
               >
                 <MaterialIcons name="check-circle" size={24} color="#fff" />
-                <Text className="text-white font-bold ml-2">Checkout</Text>
+                <Text className="text-white font-bold ml-2 text-lg">Checkout</Text>
               </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </ScrollView>
 
+      {/* Camera Modal */}
+      <Modal visible={showCamera} animationType="slide">
+        <View className="flex-1 bg-black">
+          {permission?.granted ? (
+            <>
+              <CameraView
+                ref={cameraRef}
+                style={{ flex: 1 }}
+                onBarcodeScanned={(result) => handleBarcodeScanned(result)}
+                barcodeScannerSettings={{
+                  barcodeTypes: ['ean13', 'ean8', 'code128', 'code39', 'upc_a'] as any,
+                }}
+              />
+              <View className="absolute top-0 left-0 right-0 bg-black/50 px-4 py-6 flex-row items-center justify-between">
+                <TouchableOpacity onPress={() => setShowCamera(false)}>
+                  <MaterialIcons name="close" size={28} color="#fff" />
+                </TouchableOpacity>
+                <Text className="text-white font-bold text-lg">Scan Barcode</Text>
+                <View style={{ width: 28 }} />
+              </View>
+            </>
+          ) : (
+            <View className="flex-1 items-center justify-center bg-black">
+              <MaterialIcons name="camera-alt" size={64} color="#fff" />
+              <Text className="text-white text-lg mt-4">Camera permission required</Text>
               <TouchableOpacity
-                onPress={() => setCart([])}
-                className="bg-error/10 rounded-lg py-3 mt-2 flex-row items-center justify-center"
+                onPress={() => setShowCamera(false)}
+                className="mt-6 bg-primary px-6 py-3 rounded-lg"
               >
-                <MaterialIcons name="delete" size={20} color="#EF4444" />
-                <Text className="text-error font-semibold ml-2">Clear Cart</Text>
+                <Text className="text-white font-bold">Close</Text>
               </TouchableOpacity>
             </View>
           )}
-        </View>
-      </View>
-
-      {/* Barcode Scanner Modal */}
-      <Modal visible={showBarcodeModal} transparent animationType="slide">
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-background rounded-t-2xl p-6">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-2xl font-bold text-foreground">Scan Barcode</Text>
-              <TouchableOpacity onPress={() => setShowBarcodeModal(false)}>
-                <MaterialIcons name="close" size={28} color="#11181C" />
-              </TouchableOpacity>
-            </View>
-
-            <TextInput
-              autoFocus
-              placeholder="Enter or scan barcode..."
-              placeholderTextColor="#9BA1A6"
-              value={barcodeInput}
-              onChangeText={setBarcodeInput}
-              onSubmitEditing={() => handleBarcodeScan(barcodeInput)}
-              className="bg-surface border border-border rounded-lg px-4 py-3 text-foreground mb-4"
-              returnKeyType="done"
-            />
-
-            <TouchableOpacity
-              onPress={() => handleBarcodeScan(barcodeInput)}
-              className="bg-primary rounded-lg py-4 flex-row items-center justify-center"
-            >
-              <MaterialIcons name="qr-code-scanner" size={24} color="#fff" />
-              <Text className="text-white font-bold ml-2">Add to Cart</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </Modal>
 
@@ -512,13 +542,13 @@ export default function SalesScreen() {
             <Text className="text-2xl font-bold text-foreground mb-4">Complete Sale</Text>
 
             <View className="bg-background rounded-lg p-4 mb-4">
-              <View className="flex-row justify-between mb-2">
+              <View className="flex-row justify-between mb-3">
                 <Text className="text-muted">Subtotal</Text>
                 <Text className="font-semibold text-foreground">
                   {settings.currency}{subtotal.toFixed(2)}
                 </Text>
               </View>
-              <View className="flex-row justify-between mb-2">
+              <View className="flex-row justify-between mb-3">
                 <Text className="text-muted">Total</Text>
                 <Text className="text-2xl font-bold text-primary">
                   {settings.currency}{total.toFixed(2)}
@@ -527,13 +557,13 @@ export default function SalesScreen() {
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm font-semibold text-foreground mb-2">Payment Method</Text>
+              <Text className="text-sm font-semibold text-foreground mb-3">Payment Method</Text>
               <View className="flex-row gap-2">
                 {['cash', 'card', 'upi'].map((method) => (
                   <TouchableOpacity
                     key={method}
                     onPress={() => setPaymentMethod(method)}
-                    className={`flex-1 py-2 px-3 rounded-lg border ${
+                    className={`flex-1 py-3 px-3 rounded-lg border ${
                       paymentMethod === method
                         ? 'bg-primary border-primary'
                         : 'bg-surface border-border'

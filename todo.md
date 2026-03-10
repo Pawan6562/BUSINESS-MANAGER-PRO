@@ -157,3 +157,13 @@
 - [ ] Implement cart persistence (save draft sales) (future)
 - [ ] Add keyboard shortcuts for common actions (future)
 - [x] Optimize cart rendering for large orders
+
+
+## Sales Screen Redesign (Current Priority)
+
+- [x] Redesign layout: Single screen with product list + cart below
+- [x] Implement real camera-based barcode scanning (using expo-camera)
+- [x] Add manual product selection with tap-to-add
+- [x] Fix barcode detection and product lookup
+- [x] Make cart visible and accessible on same screen
+- [x] Optimize for mobile portrait orientation
