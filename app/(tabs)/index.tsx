@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ScrollView, Text, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, Link } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { getLowStockProducts, getAllSales, getDailySalesTotal, Product } from '@/lib/database';
 import { useAppStore } from '@/lib/store';
+import { useColors } from '@/hooks/use-colors';
 import { MaterialIcons } from '@expo/vector-icons';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const colors = useColors();
   const { settings } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
@@ -62,12 +64,11 @@ export default function DashboardScreen() {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => router.push('/settings')}
-            className="bg-surface border border-border rounded-lg p-3"
-          >
-            <MaterialIcons name="settings" size={24} color="#0a7ea4" />
-          </TouchableOpacity>
+          <Link href="/settings-advanced" asChild>
+            <TouchableOpacity className="bg-surface border border-border rounded-lg p-3">
+              <MaterialIcons name="settings" size={24} color="#0a7ea4" />
+            </TouchableOpacity>
+          </Link>
         </View>
 
         {/* Key Metrics */}

@@ -223,3 +223,45 @@
 - [ ] Implement data caching
 - [ ] Add error handling
 - [ ] Test with large datasets
+
+
+## Settings & Data Management Enhancements (Current Priority)
+
+### Phase 1: Fix Backup/Restore
+- [x] Implement working backup functionality (export all data to JSON)
+- [ ] Implement working restore functionality (import JSON data) - future
+- [ ] Add file picker for restore - future
+- [x] Add backup file naming with timestamp
+- [x] Add backup success/error notifications
+
+### Phase 2: PDF Export
+- [ ] Export reports to PDF format
+- [ ] Export inventory list to PDF
+- [ ] Export sales history to PDF
+- [ ] Add date range selection for exports
+- [ ] Add custom header/footer to PDFs
+
+### Phase 3: Data Import
+- [ ] Import business data from files
+- [ ] Support JSON format for data import
+- [ ] Validate imported data before insertion
+- [ ] Merge or replace data options
+- [ ] Import progress tracking
+
+### Phase 4: Advanced Settings
+- [x] User profile management (business name)
+- [x] Business registration details (currency, tax rate)
+- [ ] Multi-store support (if applicable) - future
+- [ ] Data encryption toggle - future
+- [ ] Auto-backup scheduling - future
+- [ ] Database optimization/cleanup - future
+- [x] App version and update info
+- [x] Debug mode for troubleshooting
+- [ ] Export debug logs - future
+
+### Phase 5: Testing
+- [ ] Test backup creation and file integrity
+- [ ] Test restore with various data sizes
+- [ ] Test PDF export quality
+- [ ] Test data import validation
+- [ ] Test error handling
