@@ -381,20 +381,21 @@ export default function SettingsAdvanced() {
         </View>
 
         {/* Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-4 px-4">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-4 px-4 pb-2">
           {(['general', 'data', 'backups', 'advanced', 'about'] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
               onPress={() => setActiveTab(tab)}
-              className={`mr-2 px-4 py-2 rounded-full border ${
+              className={`mr-3 px-4 py-2 rounded-full border flex-shrink-0 ${
                 activeTab === tab ? 'bg-primary border-primary' : 'border-border bg-surface'
               }`}
             >
-              <Text className={activeTab === tab ? 'text-background font-semibold capitalize' : 'text-foreground capitalize'}>
+              <Text className={activeTab === tab ? 'text-background font-semibold capitalize text-sm' : 'text-foreground capitalize text-sm'}>
                 {tab}
               </Text>
             </TouchableOpacity>
           ))}
+          <View className="w-2" />
         </ScrollView>
 
         {/* Tab Content */}

@@ -53,6 +53,19 @@ export interface StockAdjustment {
   createdAt: number;
 }
 
+export interface Customer {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  loyaltyPoints: number;
+  totalSpent: number;
+  purchaseCount: number;
+  lastPurchaseDate?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
 // Initialize database tables
 export async function initializeDatabase() {
   try {
@@ -107,6 +120,22 @@ export async function initializeDatabase() {
         reason TEXT NOT NULL,
         createdAt INTEGER NOT NULL,
         FOREIGN KEY(productId) REFERENCES products(id)
+      );
+    `);
+
+    // Customers table
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        phone TEXT,
+        email TEXT,
+        loyaltyPoints INTEGER NOT NULL DEFAULT 0,
+        totalSpent REAL NOT NULL DEFAULT 0,
+        purchaseCount INTEGER NOT NULL DEFAULT 0,
+        lastPurchaseDate INTEGER,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
       );
     `);
 
@@ -518,9 +547,131 @@ export async function getTopSellingProducts(limit: number = 10): Promise<any[]> 
   }
 }
 
+// Customer operations
+export async function addCustomer(customer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>): Promise<Customer> {
+  const id = uuidv4();
+  const now = Date.now();
+  const newCustomer: Customer = {
+    ...customer,
+    id,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  try {
+    await db.runAsync(
+      `INSERT INTO customers (id, name, phone, email, loyaltyPoints, totalSpent, purchaseCount, lastPurchaseDate, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newCustomer.id,
+        newCustomer.name,
+        newCustomer.phone || null,
+        newCustomer.email || null,
+        newCustomer.loyaltyPoints,
+        newCustomer.totalSpent,
+        newCustomer.purchaseCount,
+        newCustomer.lastPurchaseDate || null,
+        newCustomer.createdAt,
+        newCustomer.updatedAt,
+      ]
+    );
+    return newCustomer;
+  } catch (error) {
+    console.error('Error adding customer:', error);
+    throw error;
+  }
+}
+
+export async function getAllCustomers(): Promise<Customer[]> {
+  try {
+    const results = await db.getAllAsync<Customer>('SELECT * FROM customers ORDER BY totalSpent DESC');
+    return results;
+  } catch (error) {
+    console.error('Error getting all customers:', error);
+    throw error;
+  }
+}
+
+export async function getCustomerById(id: string): Promise<Customer | null> {
+  try {
+    const result = await db.getFirstAsync<Customer>('SELECT * FROM customers WHERE id = ?', [id]);
+    return result || null;
+  } catch (error) {
+    console.error('Error getting customer:', error);
+    throw error;
+  }
+}
+
+export async function getCustomerByPhone(phone: string): Promise<Customer | null> {
+  try {
+    const result = await db.getFirstAsync<Customer>('SELECT * FROM customers WHERE phone = ?', [phone]);
+    return result || null;
+  } catch (error) {
+    console.error('Error getting customer by phone:', error);
+    throw error;
+  }
+}
+
+export async function updateCustomer(id: string, updates: Partial<Omit<Customer, 'id' | 'createdAt'>>): Promise<Customer> {
+  try {
+    const customer = await getCustomerById(id);
+    if (!customer) throw new Error('Customer not found');
+
+    const updated: Customer = {
+      ...customer,
+      ...updates,
+      updatedAt: Date.now(),
+    };
+
+    await db.runAsync(
+      `UPDATE customers SET name = ?, phone = ?, email = ?, loyaltyPoints = ?, totalSpent = ?, purchaseCount = ?, lastPurchaseDate = ?, updatedAt = ?
+       WHERE id = ?`,
+      [
+        updated.name,
+        updated.phone || null,
+        updated.email || null,
+        updated.loyaltyPoints,
+        updated.totalSpent,
+        updated.purchaseCount,
+        updated.lastPurchaseDate || null,
+        updated.updatedAt,
+        id,
+      ]
+    );
+    return updated;
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    throw error;
+  }
+}
+
+export async function addLoyaltyPoints(customerId: string, points: number): Promise<Customer> {
+  try {
+    const customer = await getCustomerById(customerId);
+    if (!customer) throw new Error('Customer not found');
+
+    return updateCustomer(customerId, {
+      loyaltyPoints: customer.loyaltyPoints + points,
+    });
+  } catch (error) {
+    console.error('Error adding loyalty points:', error);
+    throw error;
+  }
+}
+
+export async function deleteCustomer(id: string): Promise<boolean> {
+  try {
+    await db.runAsync('DELETE FROM customers WHERE id = ?', [id]);
+    return true;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    throw error;
+  }
+}
+
 export async function clearAllData(): Promise<boolean> {
   try {
-    await db.execAsync('DELETE FROM sales; DELETE FROM expenses; DELETE FROM stockAdjustments; DELETE FROM products;');
+    await db.execAsync('DELETE FROM sales; DELETE FROM expenses; DELETE FROM stockAdjustments; DELETE FROM products; DELETE FROM customers;');
     return true;
   } catch (error) {
     console.error('Error clearing all data:', error);
