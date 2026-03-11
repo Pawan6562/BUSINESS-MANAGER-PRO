@@ -178,3 +178,48 @@
 - [x] Implement Expense Tracking interface
 - [x] Add Expense database schema
 - [ ] Integrate expenses into profit calculations (next phase)
+
+
+## Reports Screen Enhancements (Current Priority)
+
+### Phase 1: Fix & Verify Logic
+- [x] Verify revenue calculation includes all sales
+- [x] Verify expense integration in profit calculation
+- [x] Fix any date range filtering issues
+- [x] Ensure tax calculations are correct
+- [x] Validate inventory value calculation
+
+### Phase 2: Advanced Charts & Visualizations
+- [x] Add revenue trend chart (line graph)
+- [x] Add expense breakdown pie chart
+- [x] Add daily sales comparison bar chart
+- [x] Add profit trend visualization
+- [x] Add payment method distribution chart
+
+### Phase 3: Product Analytics
+- [x] Top selling products by quantity
+- [x] Top selling products by revenue
+- [x] Slow-moving inventory items
+- [x] Profit margin by product
+- [x] Product turnover rate
+
+### Phase 4: Customer & Sales Insights
+- [x] Average transaction value trend
+- [x] Peak sales hours/days
+- [x] Sales growth percentage
+- [x] Customer purchase frequency
+- [x] Repeat customer analysis
+
+### Phase 5: Export & Comparison
+- [ ] Export reports to PDF
+- [ ] Export data to CSV
+- [ ] Compare periods (week vs week, month vs month)
+- [ ] Year-over-year comparison
+- [ ] Custom date range selection
+
+### Phase 6: Polish & Performance
+- [ ] Optimize chart rendering
+- [ ] Add loading states
+- [ ] Implement data caching
+- [ ] Add error handling
+- [ ] Test with large datasets
