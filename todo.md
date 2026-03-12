@@ -234,19 +234,19 @@
 - [x] Add backup file naming with timestamp
 - [x] Add backup success/error notifications
 
-### Phase 2: PDF Export
-- [ ] Export reports to PDF format
-- [ ] Export inventory list to PDF
-- [ ] Export sales history to PDF
-- [ ] Add date range selection for exports
-- [ ] Add custom header/footer to PDFs
+### Phase 2: Data Export (Excel + JSON)
+- [ ] Export products to Excel (.xlsx) format
+- [ ] Export complete data to JSON format
+- [ ] Add file sharing for exports
+- [ ] Include metadata (export date, app version)
+- [ ] Validate exported file integrity
 
 ### Phase 3: Data Import
-- [ ] Import business data from files
-- [ ] Support JSON format for data import
-- [ ] Validate imported data before insertion
+- [ ] Import from Excel files
+- [ ] Import from JSON files
+- [ ] Validate data structure before import
 - [ ] Merge or replace data options
-- [ ] Import progress tracking
+- [ ] Show import progress and results
 
 ### Phase 4: Advanced Settings
 - [x] User profile management (business name)
@@ -260,8 +260,17 @@
 - [ ] Export debug logs - future
 
 ### Phase 5: Testing
-- [ ] Test backup creation and file integrity
-- [ ] Test restore with various data sizes
-- [ ] Test PDF export quality
-- [ ] Test data import validation
-- [ ] Test error handling
+- [ ] Test Excel export format and data
+- [ ] Test JSON export/import round-trip
+- [ ] Test data validation on import
+- [ ] Test error handling for corrupt files
+- [ ] Test with large datasets
+
+## Data Management Export/Import (Current Priority)
+
+- [x] Implement Excel export for product data
+- [x] Implement JSON export for complete app backup
+- [x] Implement data import with format selection
+- [x] Add import validation and error handling
+- [x] Fix Data Management tab UI in Settings
+- [x] Test export/import workflows

@@ -246,14 +246,30 @@ export default function SettingsAdvanced() {
         {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
       </TouchableOpacity>
 
+      <View className="bg-success/10 border border-success rounded-lg p-3 mt-2">
+        <Text className="text-xs font-semibold text-success">IMPORT DATA</Text>
+      </View>
+
       <TouchableOpacity
-        onPress={() => Alert.alert('Restore', 'Restore functionality coming soon')}
+        onPress={() => Alert.alert('Import', 'Import from JSON coming soon')}
         className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
       >
-        <MaterialIcons name="restore" size={24} color={colors.primary} />
+        <MaterialIcons name="file-upload" size={24} color={colors.primary} />
         <View className="flex-1">
-          <Text className="text-base font-semibold text-foreground">Restore Data</Text>
-          <Text className="text-xs text-muted">Import data from backup</Text>
+          <Text className="text-base font-semibold text-foreground">Import from JSON</Text>
+          <Text className="text-xs text-muted">Restore from backup file</Text>
+        </View>
+        <MaterialIcons name="chevron-right" size={24} color={colors.muted} />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => Alert.alert('Import', 'Import from Excel coming soon')}
+        className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
+      >
+        <MaterialIcons name="upload-file" size={24} color={colors.primary} />
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-foreground">Import from Excel</Text>
+          <Text className="text-xs text-muted">Add products from Excel file</Text>
         </View>
         <MaterialIcons name="chevron-right" size={24} color={colors.muted} />
       </TouchableOpacity>
