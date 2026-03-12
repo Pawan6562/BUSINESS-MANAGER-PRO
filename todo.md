@@ -274,3 +274,17 @@
 - [x] Add import validation and error handling
 - [x] Fix Data Management tab UI in Settings
 - [x] Test export/import workflows
+
+
+## Working Export/Import Features (CRITICAL - User Reported Issues)
+
+- [x] Export to JSON - Downloads JSON file to phone (NOT app storage)
+- [x] Export to Excel - Downloads Excel file to phone
+- [x] Import from JSON - File picker + actual import functionality
+- [x] Import from Excel - File picker + actual import functionality
+- [x] Wire up all export buttons in Settings Data tab
+- [x] Wire up all import buttons in Settings Data tab
+- [x] Test file downloads to phone
+- [x] Test file imports from phone
+- [x] Add progress indicators for export/import
+- [x] Add success/error messages for user feedback

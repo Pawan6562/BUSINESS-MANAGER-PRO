@@ -24,6 +24,8 @@ import {
   formatBackupFileInfo,
 } from '@/lib/data-management';
 import { clearAllData } from '@/lib/database';
+import { exportToJSON, exportToExcel, exportInventoryReport, exportSalesReport } from '@/lib/export-functions';
+import { importFromJSON, importFromExcel } from '@/lib/import-functions';
 
 type SettingsTab = 'general' | 'data' | 'backups' | 'advanced' | 'about';
 
@@ -250,8 +252,51 @@ export default function SettingsAdvanced() {
         <Text className="text-xs font-semibold text-success">IMPORT DATA</Text>
       </View>
 
+      <View className="bg-primary/10 border border-primary rounded-lg p-3 mt-2">
+        <Text className="text-xs font-semibold text-primary">EXPORT DATA</Text>
+      </View>
+
       <TouchableOpacity
-        onPress={() => Alert.alert('Import', 'Import from JSON coming soon')}
+        onPress={async () => {
+          setLoading(true);
+          await exportToJSON();
+          setLoading(false);
+        }}
+        disabled={loading}
+        className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
+      >
+        <MaterialIcons name="download" size={24} color={colors.primary} />
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-foreground">Export to JSON</Text>
+          <Text className="text-xs text-muted">Download complete backup</Text>
+        </View>
+        {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={async () => {
+          setLoading(true);
+          await exportToExcel();
+          setLoading(false);
+        }}
+        disabled={loading}
+        className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
+      >
+        <MaterialIcons name="download" size={24} color={colors.primary} />
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-foreground">Export Products to Excel</Text>
+          <Text className="text-xs text-muted">Download product list</Text>
+        </View>
+        {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={async () => {
+          setLoading(true);
+          await importFromJSON();
+          setLoading(false);
+        }}
+        disabled={loading}
         className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
       >
         <MaterialIcons name="file-upload" size={24} color={colors.primary} />
@@ -259,11 +304,16 @@ export default function SettingsAdvanced() {
           <Text className="text-base font-semibold text-foreground">Import from JSON</Text>
           <Text className="text-xs text-muted">Restore from backup file</Text>
         </View>
-        <MaterialIcons name="chevron-right" size={24} color={colors.muted} />
+        {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => Alert.alert('Import', 'Import from Excel coming soon')}
+        onPress={async () => {
+          setLoading(true);
+          await importFromExcel();
+          setLoading(false);
+        }}
+        disabled={loading}
         className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
       >
         <MaterialIcons name="upload-file" size={24} color={colors.primary} />
@@ -271,7 +321,7 @@ export default function SettingsAdvanced() {
           <Text className="text-base font-semibold text-foreground">Import from Excel</Text>
           <Text className="text-xs text-muted">Add products from Excel file</Text>
         </View>
-        <MaterialIcons name="chevron-right" size={24} color={colors.muted} />
+        {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
       </TouchableOpacity>
 
       <TouchableOpacity
