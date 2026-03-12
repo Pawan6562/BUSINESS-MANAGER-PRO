@@ -1,5 +1,4 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import XLSX from 'xlsx';
 import { getAllProducts, getAllSales, Product, Sale, Expense } from './database';
 import { Alert } from 'react-native';
@@ -37,14 +36,14 @@ export async function exportToJSON(): Promise<boolean> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `grocery-backup-${timestamp}.json`;
 
-    // Save to downloads directory
-    const downloadDir = `${FileSystem.documentDirectory}Downloads/`;
+    // Save to device's Downloads folder using standard path
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
     
-    // Create Downloads folder if it doesn't exist
+    // Try to create Downloads folder if it doesn't exist
     try {
       await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
     } catch (e) {
-      // Folder might already exist
+      // Folder might already exist, continue
     }
 
     const filePath = `${downloadDir}${filename}`;
@@ -54,21 +53,19 @@ export async function exportToJSON(): Promise<boolean> {
       encoding: FileSystem.EncodingType.UTF8,
     });
 
-    // Share the file
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(filePath, {
-        mimeType: 'application/json',
-        dialogTitle: 'Export Backup',
-        UTI: 'public.json',
-      });
-    } else {
-      Alert.alert('Success', `Backup saved to: ${filePath}`);
-    }
+    Alert.alert(
+      'Success',
+      `Backup exported successfully!\n\nFile saved to: Downloads/${filename}\n\nYou can find it in your phone's Downloads folder.`,
+      [{ text: 'OK' }]
+    );
 
     return true;
   } catch (error) {
     console.error('Error exporting to JSON:', error);
-    Alert.alert('Error', `Failed to export JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    Alert.alert(
+      'Export Failed',
+      `Failed to export JSON: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
     return false;
   }
 }
@@ -113,14 +110,14 @@ export async function exportToExcel(): Promise<boolean> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `grocery-products-${timestamp}.xlsx`;
 
-    // Save to downloads directory
-    const downloadDir = `${FileSystem.documentDirectory}Downloads/`;
+    // Save to device's Downloads folder
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
     
-    // Create Downloads folder if it doesn't exist
+    // Try to create Downloads folder if it doesn't exist
     try {
       await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
     } catch (e) {
-      // Folder might already exist
+      // Folder might already exist, continue
     }
 
     const filePath = `${downloadDir}${filename}`;
@@ -130,21 +127,19 @@ export async function exportToExcel(): Promise<boolean> {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // Share the file
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(filePath, {
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        dialogTitle: 'Export Products',
-        UTI: 'com.microsoft.excel.xlsx',
-      });
-    } else {
-      Alert.alert('Success', `Excel file saved to: ${filePath}`);
-    }
+    Alert.alert(
+      'Success',
+      `Products exported successfully!\n\nFile saved to: Downloads/${filename}\n\nYou can find it in your phone's Downloads folder.`,
+      [{ text: 'OK' }]
+    );
 
     return true;
   } catch (error) {
     console.error('Error exporting to Excel:', error);
-    Alert.alert('Error', `Failed to export Excel: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    Alert.alert(
+      'Export Failed',
+      `Failed to export Excel: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
     return false;
   }
 }
@@ -208,13 +203,13 @@ export async function exportInventoryReport(): Promise<boolean> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `inventory-report-${timestamp}.xlsx`;
 
-    // Save to downloads directory
-    const downloadDir = `${FileSystem.documentDirectory}Downloads/`;
+    // Save to device's Downloads folder
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
     
     try {
       await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
     } catch (e) {
-      // Folder might already exist
+      // Folder might already exist, continue
     }
 
     const filePath = `${downloadDir}${filename}`;
@@ -224,20 +219,19 @@ export async function exportInventoryReport(): Promise<boolean> {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // Share the file
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(filePath, {
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        dialogTitle: 'Export Inventory Report',
-      });
-    } else {
-      Alert.alert('Success', `Inventory report saved to: ${filePath}`);
-    }
+    Alert.alert(
+      'Success',
+      `Inventory report exported successfully!\n\nFile saved to: Downloads/${filename}`,
+      [{ text: 'OK' }]
+    );
 
     return true;
   } catch (error) {
     console.error('Error exporting inventory report:', error);
-    Alert.alert('Error', `Failed to export inventory: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    Alert.alert(
+      'Export Failed',
+      `Failed to export inventory: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
     return false;
   }
 }
@@ -295,13 +289,13 @@ export async function exportSalesReport(): Promise<boolean> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `sales-report-${timestamp}.xlsx`;
 
-    // Save to downloads directory
-    const downloadDir = `${FileSystem.documentDirectory}Downloads/`;
+    // Save to device's Downloads folder
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
     
     try {
       await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
     } catch (e) {
-      // Folder might already exist
+      // Folder might already exist, continue
     }
 
     const filePath = `${downloadDir}${filename}`;
@@ -311,20 +305,19 @@ export async function exportSalesReport(): Promise<boolean> {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // Share the file
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(filePath, {
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        dialogTitle: 'Export Sales Report',
-      });
-    } else {
-      Alert.alert('Success', `Sales report saved to: ${filePath}`);
-    }
+    Alert.alert(
+      'Success',
+      `Sales report exported successfully!\n\nFile saved to: Downloads/${filename}`,
+      [{ text: 'OK' }]
+    );
 
     return true;
   } catch (error) {
     console.error('Error exporting sales report:', error);
-    Alert.alert('Error', `Failed to export sales: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    Alert.alert(
+      'Export Failed',
+      `Failed to export sales: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
     return false;
   }
 }

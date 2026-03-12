@@ -1,7 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import XLSX from 'xlsx';
 import { Product, getAllProducts, Expense, Sale, getAllSales } from './database';
+import { Alert } from 'react-native';
 
 /**
  * Export products to Excel format
@@ -36,9 +36,19 @@ export async function exportProductsToExcel(products: Product[], businessName: s
     const mws = XLSX.utils.aoa_to_sheet(metaData);
     XLSX.utils.book_append_sheet(wb, mws, 'Metadata');
 
-    // Generate file
-    const fileName = `products_${businessName.replace(/\s+/g, '_')}_${Date.now()}.xlsx`;
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+    // Generate file - save to Downloads folder
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const fileName = `products_${businessName.replace(/\s+/g, '_')}_${timestamp}.xlsx`;
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
+    
+    // Try to create Downloads folder if it doesn't exist
+    try {
+      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
+    } catch (e) {
+      // Folder might already exist, continue
+    }
+
+    const fileUri = `${downloadDir}${fileName}`;
 
     // Write file
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
@@ -79,8 +89,18 @@ export async function exportDataToJSON(
       },
     };
 
-    const fileName = `backup_${businessName.replace(/\s+/g, '_')}_${Date.now()}.json`;
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const fileName = `backup_${businessName.replace(/\s+/g, '_')}_${timestamp}.json`;
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
+    
+    // Try to create Downloads folder if it doesn't exist
+    try {
+      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
+    } catch (e) {
+      // Folder might already exist, continue
+    }
+
+    const fileUri = `${downloadDir}${fileName}`;
 
     await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(exportData, null, 2), {
       encoding: FileSystem.EncodingType.UTF8,
@@ -134,8 +154,18 @@ export async function exportInventoryToExcel(products: Product[], businessName: 
     const sws = XLSX.utils.aoa_to_sheet(summary);
     XLSX.utils.book_append_sheet(wb, sws, 'Summary');
 
-    const fileName = `inventory_${businessName.replace(/\s+/g, '_')}_${Date.now()}.xlsx`;
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const fileName = `inventory_${businessName.replace(/\s+/g, '_')}_${timestamp}.xlsx`;
+    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
+    
+    // Try to create Downloads folder if it doesn't exist
+    try {
+      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
+    } catch (e) {
+      // Folder might already exist, continue
+    }
+
+    const fileUri = `${downloadDir}${fileName}`;
 
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
     await FileSystem.writeAsStringAsync(fileUri, wbout, { encoding: FileSystem.EncodingType.Base64 });
@@ -148,21 +178,17 @@ export async function exportInventoryToExcel(products: Product[], businessName: 
 }
 
 /**
- * Share exported file
+ * Show success message with file location
  */
-export async function shareExportedFile(fileUri: string, fileName: string): Promise<void> {
+export async function showExportSuccess(fileUri: string, fileName: string): Promise<void> {
   try {
-    if (!(await Sharing.isAvailableAsync())) {
-      throw new Error('Sharing is not available on this device');
-    }
-
-    await Sharing.shareAsync(fileUri, {
-      mimeType: fileUri.endsWith('.xlsx') ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/json',
-      dialogTitle: `Share ${fileName}`,
-      UTI: fileUri.endsWith('.xlsx') ? 'com.microsoft.excel.xlsx' : 'public.json',
-    });
+    const displayName = fileName.split('/').pop() || fileName;
+    Alert.alert(
+      'Export Successful',
+      `File saved to: Downloads/${displayName}\n\nYou can find it in your phone's Downloads folder.`,
+      [{ text: 'OK' }]
+    );
   } catch (error) {
-    console.error('Error sharing file:', error);
-    throw new Error('Failed to share file');
+    console.error('Error showing success message:', error);
   }
 }
