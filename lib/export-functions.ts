@@ -244,149 +244,274 @@ async function buildExcelFile(): Promise<{ fileUri: string; filename: string }> 
     ['BUSINESS INSIGHTS AND RECOMMENDATIONS'],
     ['Generated', new Date().toLocaleString()],
     [''],
-    ['--- URGENT ACTION NEEDED ---'],
+    ['--- URGENT: OUT OF STOCK ITEMS ---'],
   ];
-
   const oosProducts = products.filter(p => p.quantity === 0);
   if (oosProducts.length > 0) {
-    sheet5.push(['OUT OF STOCK - Restock Immediately:']);
-    oosProducts.forEach(p => sheet5.push(['   ' + p.name, 'RESTOCK NOW', '']));
+    sheet5.push(['Product Name', 'Action', 'Cost Price', 'Selling Price']);
+    for (const p of oosProducts) {
+      sheet5.push([p.name, 'RESTOCK IMMEDIATELY', p.costPrice, p.sellingPrice]);
+    }
   } else {
-    sheet5.push(['No out-of-stock items! Great job.']);
+    sheet5.push(['No out-of-stock items. Great job!']);
   }
-
   sheet5.push(['']);
-  sheet5.push(['--- LOW STOCK - Order Soon ---']);
+  sheet5.push(['--- LOW STOCK ITEMS (Order Soon) ---']);
   const lowStockProducts = products.filter(p => p.quantity > 0 && p.quantity <= (p.reorderLevel || 5));
   if (lowStockProducts.length > 0) {
-    lowStockProducts.forEach(p =>
-      sheet5.push(['   ' + p.name, 'Only ' + p.quantity + ' left', 'Reorder at: ' + (p.reorderLevel || 5)])
-    );
+    sheet5.push(['Product Name', 'Current Qty', 'Reorder Level', 'Suggested Order']);
+    for (const p of lowStockProducts) {
+      const suggestedOrder = Math.max((p.reorderLevel || 5) * 3 - p.quantity, 10);
+      sheet5.push([p.name, p.quantity, p.reorderLevel || 5, suggestedOrder]);
+    }
   } else {
     sheet5.push(['All products have healthy stock levels!']);
   }
-
   sheet5.push(['']);
-  sheet5.push(['--- PROFIT MARGIN ANALYSIS ---']);
+  sheet5.push(['--- LOW PROFIT MARGIN PRODUCTS (Consider Price Increase) ---']);
   const lowMarginProducts = products.filter(p => {
     const margin = p.sellingPrice > 0 ? ((p.sellingPrice - p.costPrice) / p.sellingPrice) * 100 : 0;
     return margin < 15;
   });
-
   if (lowMarginProducts.length > 0) {
-    sheet5.push(['Low Margin Products (< 15%) - Consider Price Increase:']);
-    lowMarginProducts.forEach(p => {
-      const margin = p.sellingPrice > 0 ? ((p.sellingPrice - p.costPrice) / p.sellingPrice) * 100 : 0;
-      sheet5.push(['   ' + p.name, 'Margin: ' + margin.toFixed(1) + '%', 'Suggested price: ' + (p.costPrice * 1.25).toFixed(2)]);
-    });
+    sheet5.push(['Product Name', 'Current Margin %', 'Current Price', 'Suggested New Price']);
+    for (const p of lowMarginProducts) {
+      const margin         = p.sellingPrice > 0 ? ((p.sellingPrice - p.costPrice) / p.sellingPrice) * 100 : 0;
+      const suggestedPrice = Number((p.costPrice * 1.25).toFixed(2));
+      sheet5.push([p.name, Number(margin.toFixed(1)), p.sellingPrice, suggestedPrice]);
+    }
   } else {
-    sheet5.push(['All products have healthy margins (15%+)!']);
+    sheet5.push(['All products have healthy margins above 15%!']);
   }
-
   sheet5.push(['']);
-  sheet5.push(['--- SALES PERFORMANCE ---']);
+  sheet5.push(['--- PRODUCTS NEVER SOLD (Investigate / Promote) ---']);
+  if (neverSold.length > 0) {
+    sheet5.push(['Product Name', 'Stock Qty', 'Cost Locked', 'Recommendation']);
+    for (const p of neverSold) {
+      sheet5.push([p.name, p.quantity, Number((p.quantity * p.costPrice).toFixed(2)), 'Offer discount or bundle deal']);
+    }
+  } else {
+    sheet5.push(['All products have been sold at least once!']);
+  }
   if (sortedBySales.length > 0) {
-    sheet5.push(['Best Seller:', sortedBySales[0][1].name, 'Revenue: ' + sortedBySales[0][1].revenue.toFixed(2)]);
+    sheet5.push(['']);
+    sheet5.push(['--- SALES PERFORMANCE HIGHLIGHTS ---']);
+    sheet5.push(['Best Seller',  sortedBySales[0][1].name,
+      'Revenue: ' + sortedBySales[0][1].revenue.toFixed(2)]);
     if (sortedBySales.length > 1) {
       const worst = sortedBySales[sortedBySales.length - 1];
-      sheet5.push(['Least Sold:', worst[1].name, 'Revenue: ' + worst[1].revenue.toFixed(2)]);
+      sheet5.push(['Least Sold', worst[1].name, 'Revenue: ' + worst[1].revenue.toFixed(2)]);
     }
   }
-
-  if (neverSold.length > 0) {
-    sheet5.push(['']);
-    sheet5.push(['Products Never Sold - Consider Promotion/Removal:']);
-    neverSold.forEach(p => sheet5.push(['   ' + p.name, 'Stock: ' + p.quantity, 'Value locked: ' + (p.quantity * p.costPrice).toFixed(2)]));
-  }
-
   sheet5.push(['']);
-  sheet5.push(['--- GENERAL TIPS TO BOOST SALES ---']);
-  sheet5.push(['1.', 'Keep best-selling products always in stock']);
-  sheet5.push(['2.', 'Increase price or reduce cost for low-margin products']);
-  sheet5.push(['3.', 'Promote or bundle products that never sell']);
-  sheet5.push(['4.', 'Reorder low-stock items immediately to avoid revenue loss']);
-  sheet5.push(['5.', 'Encourage UPI payments - faster and traceable']);
+  sheet5.push(['--- GENERAL TIPS TO BOOST YOUR BUSINESS ---']);
+  sheet5.push(['Tip 1', 'Keep best-selling products always in stock. Stock out = lost revenue.']);
+  sheet5.push(['Tip 2', 'Low margin products: increase price or negotiate lower cost with supplier.']);
+  sheet5.push(['Tip 3', 'Never-sold products: run a bundle offer or discount to clear stock.']);
+  sheet5.push(['Tip 4', 'Reorder low-stock items BEFORE they run out, not after.']);
+  sheet5.push(['Tip 5', 'Encourage UPI payments. Faster and fully trackable.']);
+  sheet5.push(['Tip 6', 'Review sales every week to spot which products are trending up or down.']);
 
   const ws5 = XLSX.utils.aoa_to_sheet(sheet5);
-  ws5['!cols'] = [{ wch: 40 }, { wch: 30 }, { wch: 30 }];
+  ws5['!cols'] = [{ wch: 42 }, { wch: 28 }, { wch: 24 }, { wch: 30 }];
   XLSX.utils.book_append_sheet(wb, ws5, 'Business Insights');
 
-  // ─── WRITE FILE ───────────────────────────────────────────────────────────
-  const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-  const filename = `business-report-${timestamp}.xlsx`;
-  const fileUri = FileSystem.cacheDirectory + filename;
-
+  // ─── WRITE FILE ────────────────────────────────────────────────────────────
+  const wbout   = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+  const filename = 'business-report-' + timestamp + '.xlsx';
+  const fileUri  = FileSystem.cacheDirectory + filename;
   await FileSystem.writeAsStringAsync(fileUri, wbout, {
     encoding: FileSystem.EncodingType.Base64,
   });
-
   return { fileUri, filename };
 }
 
-// ─── EXPORT: JSON Share ────────────────────────────────────────────────────────
+// ─── EXPORT JSON ──────────────────────────────────────────────────────────────
 export async function exportToJSONShare(): Promise<boolean> {
   try {
-    const { fileUri, filename } = await buildJSONFile();
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) {
-      Alert.alert('Error', 'Sharing is not available on this device');
-      return false;
-    }
-    await Sharing.shareAsync(fileUri, { mimeType: 'application/json', UTI: 'com.apple.json' });
+    const { fileUri } = await buildJSONFile();
+    await Sharing.shareAsync(fileUri, {
+      mimeType: 'application/json',
+      dialogTitle: 'Share JSON Backup',
+      UTI: 'public.json',
+    });
     return true;
-  } catch (error: any) {
-    Alert.alert('Export Failed', `Failed to export JSON: ${error.message}`);
+  } catch (error) {
+    Alert.alert('Share Failed', error instanceof Error ? error.message : 'Unknown error');
     return false;
   }
 }
 
-// ─── EXPORT: JSON Download ────────────────────────────────────────────────────
 export async function exportToJSONDownload(): Promise<boolean> {
   try {
     const { fileUri, filename } = await buildJSONFile();
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) {
-      Alert.alert('Error', 'Sharing is not available on this device');
+    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+    if (!permissions.granted) {
+      Alert.alert('Permission Denied', 'Storage permission required to save file');
       return false;
     }
-    await Sharing.shareAsync(fileUri, { mimeType: 'application/json', UTI: 'com.apple.json' });
+    const content = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+      permissions.directoryUri, filename, 'application/json'
+    );
+    await FileSystem.writeAsStringAsync(destUri, content, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    Alert.alert('Downloaded!', '"' + filename + '" save ho gaya aapke chosen folder mein!');
     return true;
-  } catch (error: any) {
-    Alert.alert('Export Failed', `Failed to export JSON: ${error.message}`);
+  } catch (error) {
+    Alert.alert('Download Failed', error instanceof Error ? error.message : 'Unknown error');
     return false;
   }
 }
 
-// ─── EXPORT: Excel Share ───────────────────────────────────────────────────────
+// ─── EXPORT EXCEL ─────────────────────────────────────────────────────────────
 export async function exportToExcelShare(): Promise<boolean> {
   try {
-    const { fileUri, filename } = await buildExcelFile();
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) {
-      Alert.alert('Error', 'Sharing is not available on this device');
-      return false;
-    }
-    await Sharing.shareAsync(fileUri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const { fileUri } = await buildExcelFile();
+    await Sharing.shareAsync(fileUri, {
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      dialogTitle: 'Share Business Report',
+      UTI: 'com.microsoft.excel.xlsx',
+    });
     return true;
-  } catch (error: any) {
-    Alert.alert('Export Failed', `Failed to export Excel: ${error.message}`);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NO_DATA') {
+      Alert.alert('No Data', 'No products to export');
+    } else {
+      Alert.alert('Share Failed', error instanceof Error ? error.message : 'Unknown error');
+    }
     return false;
   }
 }
 
-// ─── EXPORT: Excel Download ────────────────────────────────────────────────────
 export async function exportToExcelDownload(): Promise<boolean> {
   try {
     const { fileUri, filename } = await buildExcelFile();
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) {
-      Alert.alert('Error', 'Sharing is not available on this device');
+    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+    if (!permissions.granted) {
+      Alert.alert('Permission Denied', 'Storage permission required to save file');
       return false;
     }
-    await Sharing.shareAsync(fileUri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const content = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+      permissions.directoryUri, filename,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    await FileSystem.writeAsStringAsync(destUri, content, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    Alert.alert('Downloaded!', '"' + filename + '" save ho gaya aapke chosen folder mein!');
     return true;
-  } catch (error: any) {
-    Alert.alert('Export Failed', `Failed to export Excel: ${error.message}`);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'NO_DATA') {
+      Alert.alert('No Data', 'No products to export');
+    } else {
+      Alert.alert('Download Failed', error instanceof Error ? error.message : 'Unknown error');
+    }
+    return false;
+  }
+}
+
+// ─── BACKWARD COMPAT ──────────────────────────────────────────────────────────
+export async function exportToJSON():  Promise<boolean> { return exportToJSONShare();  }
+export async function exportToExcel(): Promise<boolean> { return exportToExcelShare(); }
+
+// ─── INVENTORY REPORT (reports screen) ───────────────────────────────────────
+export async function exportInventoryReport(): Promise<boolean> {
+  try {
+    const products = await getAllProducts();
+    if (products.length === 0) { Alert.alert('No Data', 'No inventory to export'); return false; }
+    let totalInventoryValue = 0, totalCost = 0;
+    const wsData: any[][] = [
+      ['Inventory Report'],
+      ['Generated', new Date().toLocaleString()],
+      [''],
+      ['Product Name', 'Qty', 'Cost Price', 'Selling Price', 'Profit/Unit', 'Total Value', 'Status'],
+    ];
+    for (const p of products) {
+      const profitPerUnit = (p.sellingPrice || 0) - (p.costPrice || 0);
+      const totalValue    = p.quantity * (p.sellingPrice || 0);
+      totalInventoryValue += totalValue;
+      totalCost           += p.quantity * (p.costPrice || 0);
+      wsData.push([
+        p.name, p.quantity,
+        Number((p.costPrice || 0).toFixed(2)),
+        Number((p.sellingPrice || 0).toFixed(2)),
+        Number(profitPerUnit.toFixed(2)),
+        Number(totalValue.toFixed(2)),
+        p.quantity === 0 ? 'OUT OF STOCK' : p.quantity <= 5 ? 'LOW STOCK' : 'IN STOCK',
+      ]);
+    }
+    wsData.push(['']);
+    wsData.push(['Total Inventory Value', '', '', '', '', Number(totalInventoryValue.toFixed(2)), '']);
+    wsData.push(['Total Cost',            '', '', '', '', Number(totalCost.toFixed(2)), '']);
+    wsData.push(['Potential Profit',      '', '', '', '', Number((totalInventoryValue - totalCost).toFixed(2)), '']);
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    const wbout    = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const fileUri  = FileSystem.cacheDirectory + 'inventory-report-' + timestamp + '.xlsx';
+    await FileSystem.writeAsStringAsync(fileUri, wbout, { encoding: FileSystem.EncodingType.Base64 });
+    await Sharing.shareAsync(fileUri, {
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      dialogTitle: 'Save Inventory Report',
+    });
+    return true;
+  } catch (error) {
+    Alert.alert('Export Failed', error instanceof Error ? error.message : 'Unknown error');
+    return false;
+  }
+}
+
+// ─── SALES REPORT (reports screen) ───────────────────────────────────────────
+export async function exportSalesReport(): Promise<boolean> {
+  try {
+    const sales = await getAllSales();
+    if (sales.length === 0) { Alert.alert('No Data', 'No sales to export'); return false; }
+    let totalRevenue = 0, totalTax = 0;
+    const wsData: any[][] = [
+      ['Sales Report'],
+      ['Generated', new Date().toLocaleString()],
+      [''],
+      ['Date', 'Items Count', 'Subtotal', 'Tax', 'Discount', 'Total', 'Payment'],
+    ];
+    for (const s of sales) {
+      totalRevenue += s.total;
+      totalTax     += s.tax || 0;
+      wsData.push([
+        new Date(s.createdAt).toLocaleString(),
+        s.items?.length || 0,
+        Number(((s.total || 0) - (s.tax || 0)).toFixed(2)),
+        Number((s.tax || 0).toFixed(2)),
+        Number((s.discount || 0).toFixed(2)),
+        Number((s.total || 0).toFixed(2)),
+        (s.paymentMethod || 'cash').toUpperCase(),
+      ]);
+    }
+    wsData.push(['']);
+    wsData.push(['Total Sales',   sales.length, '', '', '', '', '']);
+    wsData.push(['Total Revenue', '', '', '', '', Number(totalRevenue.toFixed(2)), '']);
+    wsData.push(['Total Tax',     '', '', '', '', Number(totalTax.toFixed(2)), '']);
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sales');
+    const wbout    = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const fileUri  = FileSystem.cacheDirectory + 'sales-report-' + timestamp + '.xlsx';
+    await FileSystem.writeAsStringAsync(fileUri, wbout, { encoding: FileSystem.EncodingType.Base64 });
+    await Sharing.shareAsync(fileUri, {
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      dialogTitle: 'Save Sales Report',
+    });
+    return true;
+  } catch (error) {
+    Alert.alert('Export Failed', error instanceof Error ? error.message : 'Unknown error');
     return false;
   }
 }
