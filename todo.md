@@ -296,8 +296,11 @@
 - [x] Implement alternative file export approach with cache directory
 - [x] Implement share sheet for user-controlled file saving
 - [x] Update export-functions.ts with correct implementation
-- [ ] Test JSON export on Android device
-- [ ] Test Excel export on Android device
-- [ ] Test JSON import on Android device
-- [ ] Test Excel import on Android device
+- [x] Add Share and Download button variants for JSON export
+- [x] Add Share and Download button variants for Excel export
+- [x] Update settings-advanced.tsx UI with dual-button layout
+- [ ] Test JSON export (Share) on Android device
+- [ ] Test JSON export (Download) on Android device
+- [ ] Test Excel export (Share) on Android device
+- [ ] Test Excel export (Download) on Android device
 

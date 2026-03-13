@@ -24,7 +24,7 @@ import {
   formatBackupFileInfo,
 } from '@/lib/data-management';
 import { clearAllData } from '@/lib/database';
-import { exportToJSON, exportToExcel, exportInventoryReport, exportSalesReport } from '@/lib/export-functions';
+import { exportToJSONShare, exportToJSONDownload, exportToExcelShare, exportToExcelDownload, exportInventoryReport, exportSalesReport } from '@/lib/export-functions';
 import { importFromJSON, importFromExcel } from '@/lib/import-functions';
 
 type SettingsTab = 'general' | 'data' | 'backups' | 'advanced' | 'about';
@@ -256,39 +256,63 @@ export default function SettingsAdvanced() {
         <Text className="text-xs font-semibold text-primary">EXPORT DATA</Text>
       </View>
 
-      <TouchableOpacity
-        onPress={async () => {
-          setLoading(true);
-          await exportToJSON();
-          setLoading(false);
-        }}
-        disabled={loading}
-        className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
-      >
-        <MaterialIcons name="download" size={24} color={colors.primary} />
-        <View className="flex-1">
-          <Text className="text-base font-semibold text-foreground">Export to JSON</Text>
-          <Text className="text-xs text-muted">Download complete backup</Text>
+      {/* Export JSON — Share + Download */}
+      <View className="bg-surface border border-border rounded-lg p-4 gap-3">
+        <View className="flex-row items-center gap-3">
+          <MaterialIcons name="description" size={24} color={colors.primary} />
+          <View className="flex-1">
+            <Text className="text-base font-semibold text-foreground">Export to JSON</Text>
+            <Text className="text-xs text-muted">Complete backup file</Text>
+          </View>
         </View>
-        {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
-      </TouchableOpacity>
+        <View className="flex-row gap-3">
+          <TouchableOpacity
+            onPress={async () => { setLoading(true); await exportToJSONShare(); setLoading(false); }}
+            disabled={loading}
+            className="flex-1 bg-primary/10 border border-primary rounded-lg py-2 flex-row items-center justify-center gap-2"
+          >
+            <MaterialIcons name="share" size={18} color={colors.primary} />
+            <Text className="text-primary font-semibold text-sm">Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => { setLoading(true); await exportToJSONDownload(); setLoading(false); }}
+            disabled={loading}
+            className="flex-1 bg-success/10 border border-success rounded-lg py-2 flex-row items-center justify-center gap-2"
+          >
+            <MaterialIcons name="download" size={18} color="#22c55e" />
+            <Text className="text-success font-semibold text-sm">Download</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <TouchableOpacity
-        onPress={async () => {
-          setLoading(true);
-          await exportToExcel();
-          setLoading(false);
-        }}
-        disabled={loading}
-        className="bg-surface border border-border rounded-lg p-4 flex-row items-center gap-3"
-      >
-        <MaterialIcons name="download" size={24} color={colors.primary} />
-        <View className="flex-1">
-          <Text className="text-base font-semibold text-foreground">Export Products to Excel</Text>
-          <Text className="text-xs text-muted">Download product list</Text>
+      {/* Export Excel — Share + Download */}
+      <View className="bg-surface border border-border rounded-lg p-4 gap-3">
+        <View className="flex-row items-center gap-3">
+          <MaterialIcons name="table-chart" size={24} color={colors.primary} />
+          <View className="flex-1">
+            <Text className="text-base font-semibold text-foreground">Export Products to Excel</Text>
+            <Text className="text-xs text-muted">Product list spreadsheet</Text>
+          </View>
         </View>
-        {loading ? <ActivityIndicator /> : <MaterialIcons name="chevron-right" size={24} color={colors.muted} />}
-      </TouchableOpacity>
+        <View className="flex-row gap-3">
+          <TouchableOpacity
+            onPress={async () => { setLoading(true); await exportToExcelShare(); setLoading(false); }}
+            disabled={loading}
+            className="flex-1 bg-primary/10 border border-primary rounded-lg py-2 flex-row items-center justify-center gap-2"
+          >
+            <MaterialIcons name="share" size={18} color={colors.primary} />
+            <Text className="text-primary font-semibold text-sm">Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => { setLoading(true); await exportToExcelDownload(); setLoading(false); }}
+            disabled={loading}
+            className="flex-1 bg-success/10 border border-success rounded-lg py-2 flex-row items-center justify-center gap-2"
+          >
+            <MaterialIcons name="download" size={18} color="#22c55e" />
+            <Text className="text-success font-semibold text-sm">Download</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <TouchableOpacity
         onPress={async () => {
