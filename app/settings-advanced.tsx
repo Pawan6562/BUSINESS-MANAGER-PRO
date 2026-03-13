@@ -24,7 +24,7 @@ import {
   formatBackupFileInfo,
 } from '@/lib/data-management';
 import { clearAllData } from '@/lib/database';
-import { exportToJSONShare, exportToJSONDownload, exportToExcelShare, exportToExcelDownload, exportInventoryReport, exportSalesReport } from '@/lib/export-functions';
+import { exportToJSONShare, exportToJSONDownload, exportToExcelShare, exportToExcelDownload } from '@/lib/export-functions';
 import { importFromJSON, importFromExcel } from '@/lib/import-functions';
 
 type SettingsTab = 'general' | 'data' | 'backups' | 'advanced' | 'about';

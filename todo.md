@@ -305,6 +305,8 @@
 - [x] Add Sales History sheet with transaction details
 - [x] Add Product Performance sheet with rankings
 - [x] Add Business Insights sheet with recommendations
+- [x] Remove emojis from sheet names (fix React Native XLSX crash)
+- [x] Fix all sheet data to populate correctly in Excel
 - [ ] Test JSON export (Share) on Android device
 - [ ] Test JSON export (Download) on Android device
 - [ ] Test Excel export (Share) on Android device
