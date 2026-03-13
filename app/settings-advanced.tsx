@@ -290,8 +290,8 @@ export default function SettingsAdvanced() {
         <View className="flex-row items-center gap-3">
           <MaterialIcons name="table-chart" size={24} color={colors.primary} />
           <View className="flex-1">
-            <Text className="text-base font-semibold text-foreground">Export Products to Excel</Text>
-            <Text className="text-xs text-muted">Product list spreadsheet</Text>
+            <Text className="text-base font-semibold text-foreground">Export Full Business Report</Text>
+            <Text className="text-xs text-muted">Inventory + Sales + Insights (Excel)</Text>
           </View>
         </View>
         <View className="flex-row gap-3">

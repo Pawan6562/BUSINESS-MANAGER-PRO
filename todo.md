@@ -299,6 +299,12 @@
 - [x] Add Share and Download button variants for JSON export
 - [x] Add Share and Download button variants for Excel export
 - [x] Update settings-advanced.tsx UI with dual-button layout
+- [x] Overhaul Excel export with 5 comprehensive sheets
+- [x] Add Business Summary sheet with analytics
+- [x] Add Inventory Details sheet with profit margins
+- [x] Add Sales History sheet with transaction details
+- [x] Add Product Performance sheet with rankings
+- [x] Add Business Insights sheet with recommendations
 - [ ] Test JSON export (Share) on Android device
 - [ ] Test JSON export (Download) on Android device
 - [ ] Test Excel export (Share) on Android device
