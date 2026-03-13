@@ -1,18 +1,17 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import XLSX from 'xlsx';
-import { getAllProducts, getAllSales, Product, Sale, Expense } from './database';
+import { getAllProducts, getAllSales } from './database';
 import { Alert } from 'react-native';
 
 /**
- * Export all data to JSON file and download to phone
+ * Export all data to JSON file and share
  */
 export async function exportToJSON(): Promise<boolean> {
   try {
-    // Fetch all data
     const products = await getAllProducts();
     const sales = await getAllSales();
 
-    // Create backup object
     const backupData = {
       metadata: {
         exportDate: new Date().toISOString(),
@@ -29,35 +28,29 @@ export async function exportToJSON(): Promise<boolean> {
       },
     };
 
-    // Convert to JSON string
     const jsonString = JSON.stringify(backupData, null, 2);
-
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `grocery-backup-${timestamp}.json`;
 
-    // Save to device's Downloads folder using standard path
-    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
-    
-    // Try to create Downloads folder if it doesn't exist
-    try {
-      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
-    } catch (e) {
-      // Folder might already exist, continue
-    }
+    // ✅ Cache directory use karo — ye hamesha writable hota hai
+    const fileUri = FileSystem.cacheDirectory + filename;
 
-    const filePath = `${downloadDir}${filename}`;
-
-    // Write file
-    await FileSystem.writeAsStringAsync(filePath, jsonString, {
+    await FileSystem.writeAsStringAsync(fileUri, jsonString, {
       encoding: FileSystem.EncodingType.UTF8,
     });
 
-    Alert.alert(
-      'Success',
-      `Backup exported successfully!\n\nFile saved to: Downloads/${filename}\n\nYou can find it in your phone's Downloads folder.`,
-      [{ text: 'OK' }]
-    );
+    // ✅ Share sheet se user khud choose karega kahaan save karna hai
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/json',
+        dialogTitle: 'Save Backup File',
+        UTI: 'public.json',
+      });
+    } else {
+      Alert.alert('Error', 'Sharing is not available on this device');
+      return false;
+    }
 
     return true;
   } catch (error) {
@@ -71,11 +64,10 @@ export async function exportToJSON(): Promise<boolean> {
 }
 
 /**
- * Export products to Excel file and download to phone
+ * Export products to Excel file and share
  */
 export async function exportToExcel(): Promise<boolean> {
   try {
-    // Fetch products
     const products = await getAllProducts();
 
     if (products.length === 0) {
@@ -83,7 +75,6 @@ export async function exportToExcel(): Promise<boolean> {
       return false;
     }
 
-    // Create worksheet data
     const wsData = [
       ['Product ID', 'Name', 'Barcode', 'Category', 'Cost Price', 'Selling Price', 'Quantity', 'Stock Status'],
       ...products.map((p) => [
@@ -98,40 +89,34 @@ export async function exportToExcel(): Promise<boolean> {
       ]),
     ];
 
-    // Create workbook and worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Products');
 
-    // Generate Excel file
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
 
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `grocery-products-${timestamp}.xlsx`;
 
-    // Save to device's Downloads folder
-    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
-    
-    // Try to create Downloads folder if it doesn't exist
-    try {
-      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
-    } catch (e) {
-      // Folder might already exist, continue
-    }
+    // ✅ Cache directory use karo
+    const fileUri = FileSystem.cacheDirectory + filename;
 
-    const filePath = `${downloadDir}${filename}`;
-
-    // Write file
-    await FileSystem.writeAsStringAsync(filePath, wbout, {
+    await FileSystem.writeAsStringAsync(fileUri, wbout, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    Alert.alert(
-      'Success',
-      `Products exported successfully!\n\nFile saved to: Downloads/${filename}\n\nYou can find it in your phone's Downloads folder.`,
-      [{ text: 'OK' }]
-    );
+    // ✅ Share karo
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: 'Save Excel File',
+        UTI: 'com.microsoft.excel.xlsx',
+      });
+    } else {
+      Alert.alert('Error', 'Sharing is not available on this device');
+      return false;
+    }
 
     return true;
   } catch (error) {
@@ -156,7 +141,6 @@ export async function exportInventoryReport(): Promise<boolean> {
       return false;
     }
 
-    // Calculate totals
     let totalInventoryValue = 0;
     let totalCost = 0;
 
@@ -169,7 +153,7 @@ export async function exportInventoryReport(): Promise<boolean> {
         const profitPerUnit = (p.sellingPrice || 0) - (p.costPrice || 0);
         const totalValue = p.quantity * (p.sellingPrice || 0);
         const totalCostValue = p.quantity * (p.costPrice || 0);
-        
+
         totalInventoryValue += totalValue;
         totalCost += totalCostValue;
 
@@ -191,39 +175,33 @@ export async function exportInventoryReport(): Promise<boolean> {
       ['Total Profit Potential:', totalInventoryValue - totalCost, '', '', '', '', '', ''],
     ];
 
-    // Create workbook and worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
 
-    // Generate Excel file
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
 
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `inventory-report-${timestamp}.xlsx`;
 
-    // Save to device's Downloads folder
-    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
-    
-    try {
-      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
-    } catch (e) {
-      // Folder might already exist, continue
-    }
+    // ✅ Cache directory use karo
+    const fileUri = FileSystem.cacheDirectory + filename;
 
-    const filePath = `${downloadDir}${filename}`;
-
-    // Write file
-    await FileSystem.writeAsStringAsync(filePath, wbout, {
+    await FileSystem.writeAsStringAsync(fileUri, wbout, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    Alert.alert(
-      'Success',
-      `Inventory report exported successfully!\n\nFile saved to: Downloads/${filename}`,
-      [{ text: 'OK' }]
-    );
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: 'Save Inventory Report',
+        UTI: 'com.microsoft.excel.xlsx',
+      });
+    } else {
+      Alert.alert('Error', 'Sharing is not available on this device');
+      return false;
+    }
 
     return true;
   } catch (error) {
@@ -248,7 +226,6 @@ export async function exportSalesReport(): Promise<boolean> {
       return false;
     }
 
-    // Calculate totals
     let totalRevenue = 0;
     let totalTax = 0;
 
@@ -277,39 +254,33 @@ export async function exportSalesReport(): Promise<boolean> {
       ['Total Tax:', totalTax.toFixed(2), '', '', '', ''],
     ];
 
-    // Create workbook and worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Sales');
 
-    // Generate Excel file
     const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
 
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `sales-report-${timestamp}.xlsx`;
 
-    // Save to device's Downloads folder
-    const downloadDir = `${FileSystem.documentDirectory}../Downloads/`;
-    
-    try {
-      await FileSystem.makeDirectoryAsync(downloadDir, { intermediates: true });
-    } catch (e) {
-      // Folder might already exist, continue
-    }
+    // ✅ Cache directory use karo
+    const fileUri = FileSystem.cacheDirectory + filename;
 
-    const filePath = `${downloadDir}${filename}`;
-
-    // Write file
-    await FileSystem.writeAsStringAsync(filePath, wbout, {
+    await FileSystem.writeAsStringAsync(fileUri, wbout, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    Alert.alert(
-      'Success',
-      `Sales report exported successfully!\n\nFile saved to: Downloads/${filename}`,
-      [{ text: 'OK' }]
-    );
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: 'Save Sales Report',
+        UTI: 'com.microsoft.excel.xlsx',
+      });
+    } else {
+      Alert.alert('Error', 'Sharing is not available on this device');
+      return false;
+    }
 
     return true;
   } catch (error) {

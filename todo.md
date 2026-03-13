@@ -293,6 +293,8 @@
 
 - [x] Fix expo-sharing compatibility error (getFilePermission() method missing)
 - [x] Implement alternative file export approach without expo-sharing
+- [x] Fix Android file writing permissions using cache directory
+- [x] Implement share sheet for user-controlled file saving
 - [ ] Test JSON export on Android device
 - [ ] Test Excel export on Android device
 - [ ] Test JSON import on Android device
