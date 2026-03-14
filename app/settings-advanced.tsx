@@ -428,7 +428,7 @@ export default function SettingsAdvanced() {
     <View className="gap-4 pb-8">
       <View className="bg-surface border border-border rounded-lg p-6 items-center">
         <MaterialIcons name="store" size={48} color={colors.primary} />
-        <Text className="text-2xl font-bold text-foreground mt-4">Grocery Manager Pro</Text>
+        <Text className="text-2xl font-bold text-foreground mt-4">Business Manager Pro</Text>
         <Text className="text-sm text-muted mt-1">v1.0.0</Text>
       </View>
 

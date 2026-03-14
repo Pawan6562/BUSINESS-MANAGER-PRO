@@ -265,7 +265,7 @@ export default function SettingsScreen() {
           <View className="bg-surface border border-border rounded-lg p-4">
             <View className="mb-3">
               <Text className="text-sm text-muted">App Name</Text>
-              <Text className="font-semibold text-foreground mt-1">Grocery Manager Pro</Text>
+              <Text className="font-semibold text-foreground mt-1">Business Manager Pro</Text>
             </View>
             <View className="mb-3">
               <Text className="text-sm text-muted">Version</Text>

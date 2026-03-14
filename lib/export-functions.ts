@@ -11,7 +11,7 @@ async function buildJSONFile(): Promise<{ fileUri: string; filename: string }> {
     metadata: {
       exportDate: new Date().toISOString(),
       appVersion: '1.0.0',
-      businessName: 'Grocery Manager Pro',
+      businessName: 'Business Manager Pro',
       dataCount: { products: products.length, sales: sales.length },
     },
     data: { products, sales },

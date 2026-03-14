@@ -20,7 +20,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const { loadSettings } = useAppStore.getState();
       await loadSettings();
 
-      console.log('Grocery Manager Pro initialized successfully');
+      console.log('Business Manager Pro initialized successfully');
     } catch (error) {
       console.error('Error initializing app:', error);
     }
