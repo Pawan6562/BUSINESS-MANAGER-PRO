@@ -256,7 +256,7 @@ export default function SettingsAdvanced() {
         <Text className="text-xs font-semibold text-primary">EXPORT DATA</Text>
       </View>
 
-      {/* Export JSON — Share + Download */}
+      {/* Export JSON */}
       <View className="bg-surface border border-border rounded-lg p-4 gap-3">
         <View className="flex-row items-center gap-3">
           <MaterialIcons name="description" size={24} color={colors.primary} />
@@ -285,7 +285,7 @@ export default function SettingsAdvanced() {
         </View>
       </View>
 
-      {/* Export Excel — Share + Download */}
+      {/* Export Excel */}
       <View className="bg-surface border border-border rounded-lg p-4 gap-3">
         <View className="flex-row items-center gap-3">
           <MaterialIcons name="table-chart" size={24} color={colors.primary} />
