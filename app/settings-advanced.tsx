@@ -277,10 +277,10 @@ export default function SettingsAdvanced() {
           <TouchableOpacity
             onPress={async () => { setLoading(true); await exportToJSONDownload(); setLoading(false); }}
             disabled={loading}
-            className="flex-1 bg-success/10 border border-success rounded-lg py-2 flex-row items-center justify-center gap-2"
+            className="flex-1 bg-surface border border-border rounded-lg py-2 flex-row items-center justify-center gap-2"
           >
-            <MaterialIcons name="download" size={18} color="#22c55e" />
-            <Text className="text-success font-semibold text-sm">Download</Text>
+            <MaterialIcons name="download" size={18} color={colors.foreground} />
+            <Text className="text-foreground font-semibold text-sm">Download</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -306,10 +306,10 @@ export default function SettingsAdvanced() {
           <TouchableOpacity
             onPress={async () => { setLoading(true); await exportToExcelDownload(); setLoading(false); }}
             disabled={loading}
-            className="flex-1 bg-success/10 border border-success rounded-lg py-2 flex-row items-center justify-center gap-2"
+            className="flex-1 bg-surface border border-border rounded-lg py-2 flex-row items-center justify-center gap-2"
           >
-            <MaterialIcons name="download" size={18} color="#22c55e" />
-            <Text className="text-success font-semibold text-sm">Download</Text>
+            <MaterialIcons name="download" size={18} color={colors.foreground} />
+            <Text className="text-foreground font-semibold text-sm">Download</Text>
           </TouchableOpacity>
         </View>
       </View>
