@@ -1,10 +1,20 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Share,
+} from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { getAllSales, Sale } from '@/lib/database';
 import { useAppStore } from '@/lib/store';
 import { MaterialIcons } from '@expo/vector-icons';
+import { generateBillText } from '@/lib/bill-generator';
+import { BillPreviewModal } from '@/components/BillPreviewModal';
 
 export default function SalesHistoryScreen() {
   const router = useRouter();
@@ -13,6 +23,7 @@ export default function SalesHistoryScreen() {
   const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [showBillPreview, setShowBillPreview] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -173,13 +184,43 @@ export default function SalesHistoryScreen() {
             </View>
           </View>
 
-          {/* Close Button */}
-          <TouchableOpacity
-            onPress={() => setSelectedSale(null)}
-            className="bg-primary rounded-lg py-4 flex-row items-center justify-center"
-          >
-            <Text className="text-white font-semibold">Back to History</Text>
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          <View className="flex-row gap-2 mb-3">
+            <TouchableOpacity
+              onPress={() => setShowBillPreview(true)}
+              className="flex-1 bg-primary rounded-lg py-4 flex-row items-center justify-center"
+            >
+              <MaterialIcons name="share" size={20} color="#fff" />
+              <Text className="text-white font-semibold ml-2">Send Bill</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSelectedSale(null)}
+              className="flex-1 bg-surface border border-border rounded-lg py-4 flex-row items-center justify-center"
+            >
+              <Text className="text-foreground font-semibold">Back</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Bill Preview Modal */}
+          {selectedSale && (
+            <BillPreviewModal
+              visible={showBillPreview}
+              billText={generateBillText(selectedSale, settings.businessName, settings.currency)}
+              businessName={settings.businessName}
+              onClose={() => setShowBillPreview(false)}
+              onShare={async () => {
+                try {
+                  await Share.share({
+                    message: generateBillText(selectedSale, settings.businessName, settings.currency),
+                    title: `Bill from ${settings.businessName}`,
+                  });
+                  setShowBillPreview(false);
+                } catch (error) {
+                  Alert.alert('Error', 'Failed to share bill');
+                }
+              }}
+            />
+          )}
         </View>
       </ScreenContainer>
     );

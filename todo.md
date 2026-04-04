@@ -312,3 +312,14 @@
 - [ ] Test Excel export (Share) on Android device
 - [ ] Test Excel export (Download) on Android device
 
+
+## Features - Send Bill System
+
+- [x] Create bill-generator.ts with formatBillText function
+- [x] Create BillPreviewModal component with copy and share buttons
+- [x] Add Send Bill button to sales.tsx (after checkout)
+- [x] Add Send Bill button to sales-history.tsx (in receipt view)
+- [x] Integrate React Native Share API for bill sharing
+- [ ] Test Send Bill on Android device
+- [ ] Test bill preview modal functionality
+- [ ] Test bill sharing via WhatsApp, email, etc.

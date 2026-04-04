@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   Dimensions,
+  Share,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
@@ -18,6 +19,8 @@ import { useAppStore } from '@/lib/store';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { generateBillText } from '@/lib/bill-generator';
+import { BillPreviewModal } from '@/components/BillPreviewModal';
 
 interface CartItem extends SaleItem {
   availableStock: number;
@@ -39,6 +42,8 @@ export default function SalesScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [scannedBarcodes, setScannedBarcodes] = useState<Set<string>>(new Set());
+  const [showBillPreview, setShowBillPreview] = useState(false);
+  const [lastSale, setLastSale] = useState<Sale | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -245,6 +250,7 @@ export default function SalesScreen() {
       };
 
       await addSale(sale);
+      setLastSale(sale);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -255,6 +261,13 @@ export default function SalesScreen() {
             setCart([]);
             setDiscount(0);
             setShowCheckout(false);
+          },
+        },
+        {
+          text: 'Send Bill',
+          onPress: () => {
+            setShowCheckout(false);
+            setShowBillPreview(true);
           },
         },
         {
@@ -563,6 +576,27 @@ export default function SalesScreen() {
           )}
         </View>
       </Modal>
+
+      {/* Bill Preview Modal */}
+      {lastSale && (
+        <BillPreviewModal
+          visible={showBillPreview}
+          billText={generateBillText(lastSale, settings.businessName, settings.currency)}
+          businessName={settings.businessName}
+          onClose={() => setShowBillPreview(false)}
+          onShare={async () => {
+            try {
+              await Share.share({
+                message: generateBillText(lastSale, settings.businessName, settings.currency),
+                title: `Bill from ${settings.businessName}`,
+              });
+              setShowBillPreview(false);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to share bill');
+            }
+          }}
+        />
+      )}
 
       {/* Checkout Modal */}
       <Modal visible={showCheckout} transparent animationType="fade">
