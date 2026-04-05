@@ -14,6 +14,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { addExpense, getExpensesByDateRange, deleteExpense, Expense } from '@/lib/database';
 import { useAppStore } from '@/lib/store';
+import { useColors } from '@/hooks/use-colors';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
@@ -35,6 +36,7 @@ const EXPENSE_CATEGORIES = [
 
 export default function ExpensesScreen() {
   const router = useRouter();
+  const colors = useColors();
   const { settings } = useAppStore();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -402,6 +404,29 @@ export default function ExpensesScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Floating Add Button */}
+      <TouchableOpacity
+        onPress={() => setShowAddModal(true)}
+        style={{
+          position: 'absolute',
+          bottom: 24,
+          right: 24,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: colors.primary,
+          alignItems: 'center',
+          justifyContent: 'center',
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+        }}
+      >
+        <MaterialIcons name="add" size={32} color="#fff" />
+      </TouchableOpacity>
     </ScreenContainer>
   );
 }

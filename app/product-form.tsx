@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { addProduct, getProduct, updateProduct, Product } from '@/lib/database';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAppStore } from '@/lib/store';
+import { useColors } from '@/hooks/use-colors';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ProductFormScreen() {
   const router = useRouter();
+  const colors = useColors();
   const { productId, barcode } = useLocalSearchParams<{ productId?: string; barcode?: string }>();
   const { settings } = useAppStore();
   const [loading, setLoading] = useState(!!productId);
   const [saving, setSaving] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     barcode: barcode || '',
@@ -44,11 +48,31 @@ export default function ProductFormScreen() {
           unit: product.unit,
           category: product.category || '',
         });
+        if (product.imageUri) {
+          setImageUri(product.imageUri);
+        }
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to load product');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission needed', 'Please allow photo access to add product image');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
     }
   };
 
@@ -94,6 +118,7 @@ export default function ProductFormScreen() {
         reorderLevel: parseInt(form.reorderLevel),
         unit: form.unit,
         category: form.category.trim() || undefined,
+        imageUri: imageUri || undefined,
       };
 
       if (productId) {
@@ -169,6 +194,37 @@ export default function ProductFormScreen() {
             onChangeText={(text) => setForm({ ...form, name: text })}
             className="bg-surface border border-border rounded-lg px-3 py-3 text-foreground"
           />
+        </View>
+
+        {/* Product Photo */}
+        <View className="mb-4">
+          <Text className="text-sm font-semibold text-muted mb-2">Product Photo (Optional)</Text>
+          <TouchableOpacity
+            onPress={handlePickImage}
+            className="border-2 border-dashed border-border rounded-lg items-center justify-center"
+            style={{ height: 120 }}
+          >
+            {imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={{ width: '100%', height: 120, borderRadius: 8 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="items-center gap-2">
+                <MaterialIcons name="add-a-photo" size={32} color={colors.muted} />
+                <Text className="text-muted text-sm">Tap to add photo</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          {imageUri && (
+            <TouchableOpacity
+              onPress={() => setImageUri(null)}
+              className="mt-2 items-center"
+            >
+              <Text className="text-error text-sm">Remove Photo</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Category */}

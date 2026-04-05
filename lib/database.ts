@@ -14,6 +14,7 @@ export interface Product {
   reorderLevel: number;
   unit: string;
   category?: string;
+  imageUri?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -81,6 +82,7 @@ export async function initializeDatabase() {
         reorderLevel INTEGER NOT NULL,
         unit TEXT NOT NULL,
         category TEXT,
+        imageUri TEXT,
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL
       );
@@ -159,8 +161,8 @@ export async function addProduct(product: Omit<Product, 'id' | 'createdAt' | 'up
 
   try {
     await db.runAsync(
-      `INSERT INTO products (id, barcode, name, costPrice, sellingPrice, quantity, reorderLevel, unit, category, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO products (id, barcode, name, costPrice, sellingPrice, quantity, reorderLevel, unit, category, imageUri, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         newProduct.id,
         newProduct.barcode,
@@ -171,6 +173,7 @@ export async function addProduct(product: Omit<Product, 'id' | 'createdAt' | 'up
         newProduct.reorderLevel,
         newProduct.unit,
         newProduct.category || null,
+        newProduct.imageUri || null,
         newProduct.createdAt,
         newProduct.updatedAt,
       ]
@@ -246,7 +249,7 @@ export async function updateProduct(id: string, updates: Partial<Omit<Product, '
     };
 
     await db.runAsync(
-      `UPDATE products SET barcode = ?, name = ?, costPrice = ?, sellingPrice = ?, quantity = ?, reorderLevel = ?, unit = ?, category = ?, updatedAt = ?
+      `UPDATE products SET barcode = ?, name = ?, costPrice = ?, sellingPrice = ?, quantity = ?, reorderLevel = ?, unit = ?, category = ?, imageUri = ?, updatedAt = ?
        WHERE id = ?`,
       [
         updatedProduct.barcode,
@@ -257,6 +260,7 @@ export async function updateProduct(id: string, updates: Partial<Omit<Product, '
         updatedProduct.reorderLevel,
         updatedProduct.unit,
         updatedProduct.category || null,
+        updatedProduct.imageUri || null,
         updatedProduct.updatedAt,
         id,
       ]

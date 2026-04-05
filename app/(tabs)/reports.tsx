@@ -54,14 +54,15 @@ export default function ReportsScreen() {
 
     switch (period) {
       case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
         break;
       case 'week':
         startDate = new Date(now);
-        startDate.setDate(now.getDate() - now.getDay());
+        startDate.setDate(now.getDate() - 6);
+        startDate.setHours(0, 0, 0, 0);
         break;
       case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
         break;
       case 'year':
         startDate = new Date(now.getFullYear(), 0, 1);
@@ -70,7 +71,7 @@ export default function ReportsScreen() {
 
     return {
       startDate: startDate.getTime(),
-      endDate: now.getTime(),
+      endDate: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime(),
     };
   };
 
@@ -236,7 +237,7 @@ export default function ReportsScreen() {
 
   return (
     <ScreenContainer className="flex-1 bg-background">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-4 pt-4 pb-6" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }} className="px-4 pt-4" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="mb-4">
           <Text className="text-3xl font-bold text-foreground">Reports</Text>

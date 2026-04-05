@@ -11,11 +11,13 @@ import {
   Modal,
   Dimensions,
   Share,
+  Image,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { getAllProducts, addSale, Product, Sale, SaleItem } from '@/lib/database';
 import { useAppStore } from '@/lib/store';
+import { useColors } from '@/hooks/use-colors';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -28,6 +30,7 @@ interface CartItem extends SaleItem {
 
 export default function SalesScreen() {
   const router = useRouter();
+  const colors = useColors();
   const { settings } = useAppStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -491,12 +494,18 @@ export default function SalesScreen() {
                 key={product.id}
                 onPress={() => addToCart(product)}
                 disabled={product.quantity <= 0}
-                className={`mb-3 p-4 rounded-lg border flex-row justify-between items-center ${
-                  product.quantity <= 0
-                    ? 'bg-surface/50 border-border opacity-50'
-                    : 'bg-surface border-border'
-                }`}
+                className="bg-surface border border-border rounded-lg p-3 mb-3 flex-row items-center"
               >
+                {product.imageUri ? (
+                  <Image
+                    source={{ uri: product.imageUri }}
+                    style={{ width: 44, height: 44, borderRadius: 8, marginRight: 12 }}
+                  />
+                ) : (
+                  <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                    <MaterialIcons name="inventory-2" size={24} color={colors.muted} />
+                  </View>
+                )}
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-foreground">{product.name}</Text>
                   <View className="flex-row items-center gap-2 mt-1">

@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenContainer } from '@/components/screen-container';
 import { getAllProducts, getLowStockProducts, Product, deleteProduct } from '@/lib/database';
 import { useAppStore } from '@/lib/store';
+import { useColors } from '@/hooks/use-colors';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function InventoryScreen() {
   const router = useRouter();
+  const colors = useColors();
   const { settings } = useAppStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -99,6 +101,16 @@ export default function InventoryScreen() {
             <Text className="text-lg font-semibold text-foreground">{item.name}</Text>
             <Text className="text-sm text-muted">Barcode: {item.barcode}</Text>
           </View>
+          {item.imageUri ? (
+            <Image
+              source={{ uri: item.imageUri }}
+              style={{ width: 44, height: 44, borderRadius: 8, marginLeft: 8 }}
+            />
+          ) : (
+            <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', marginLeft: 8 }}>
+              <MaterialIcons name="inventory-2" size={24} color={colors.muted} />
+            </View>
+          )}
           <View
             className="px-3 py-1 rounded-full"
             style={{ backgroundColor: status.color + '20' }}
