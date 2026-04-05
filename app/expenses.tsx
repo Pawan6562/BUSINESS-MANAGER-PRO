@@ -20,10 +20,16 @@ import * as Haptics from 'expo-haptics';
 const EXPENSE_CATEGORIES = [
   { id: 'rent', label: 'Rent', icon: 'home' },
   { id: 'utilities', label: 'Utilities', icon: 'flash-on' },
+  { id: 'electricity', label: 'Electricity Bill', icon: 'bolt' },
+  { id: 'internet', label: 'Internet / Phone', icon: 'wifi' },
   { id: 'supplies', label: 'Supplies', icon: 'shopping-cart' },
+  { id: 'packaging', label: 'Packaging', icon: 'inventory' },
   { id: 'staff', label: 'Staff', icon: 'people' },
   { id: 'maintenance', label: 'Maintenance', icon: 'build' },
   { id: 'transport', label: 'Transport', icon: 'local-shipping' },
+  { id: 'marketing', label: 'Marketing', icon: 'campaign' },
+  { id: 'loan', label: 'Loan / EMI', icon: 'account-balance' },
+  { id: 'tax', label: 'Tax / GST', icon: 'receipt' },
   { id: 'other', label: 'Other', icon: 'more-horiz' },
 ];
 

@@ -88,7 +88,22 @@ export default function ReportsScreen() {
       // Filter sales by date range
       const filteredSales = sales.filter((s) => s.createdAt >= startDate && s.createdAt <= endDate);
       const totalSales = filteredSales.reduce((sum, s) => sum + s.total, 0);
-      const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+      
+      // Calculate Cost of Goods Sold (COGS)
+      let totalCOGS = 0;
+      filteredSales.forEach((sale) => {
+        sale.items.forEach((item) => {
+          const product = allProducts.find((p) => p.id === item.productId);
+          const costPrice = product?.costPrice || 0;
+          totalCOGS += costPrice * item.quantity;
+        });
+      });
+      
+      // Get manually added expenses
+      const totalManualExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+      
+      // Calculate total expenses and profit
+      const totalExpenses = totalCOGS + totalManualExpenses;
       const profit = totalSales - totalExpenses;
       const profitMargin = totalSales > 0 ? (profit / totalSales) * 100 : 0;
       const averageTransaction = filteredSales.length > 0 ? totalSales / filteredSales.length : 0;

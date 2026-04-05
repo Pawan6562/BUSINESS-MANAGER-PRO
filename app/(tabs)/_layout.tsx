@@ -57,6 +57,20 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <MaterialIcons name="bar-chart" size={28} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="sales-history"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color }) => <MaterialIcons name="history" size={28} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="expenses"
+        options={{
+          title: "Expenses",
+          tabBarIcon: ({ color }) => <MaterialIcons name="receipt-long" size={28} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
