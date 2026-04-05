@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, ScrollView, Pressable, Share, Clipboard, Alert } from 'react-native';
+import { View, Text, Modal, ScrollView, Pressable, Share, Alert } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/use-colors';
 
@@ -23,7 +24,7 @@ export function BillPreviewModal({
 
   const handleCopyText = async () => {
     try {
-      await Clipboard.setString(billText);
+      await Clipboard.setStringAsync(billText);
       setCopied(true);
       Alert.alert('Copied!', 'Bill text copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
@@ -89,9 +90,12 @@ export function BillPreviewModal({
           {/* Bill Content */}
           <ScrollView
             style={{
-              flex: 1,
+              height: 350,
               paddingHorizontal: 16,
               paddingVertical: 16,
+            }}
+            contentContainerStyle={{
+              paddingBottom: 16,
             }}
           >
             <View
