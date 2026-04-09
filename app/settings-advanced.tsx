@@ -537,12 +537,6 @@ export default function SettingsAdvanced() {
         {activeTab === 'backups' && renderBackupsTab()}
         {activeTab === 'advanced' && renderAdvancedTab()}
         {activeTab === 'about' && renderAboutTab()}
-
-        {/* Footer Branding - All Tabs */}
-        <View className="items-center gap-1 py-4 border-t border-border mt-6">
-          <Text className="text-xs text-muted">Powered by</Text>
-          <Text className="text-xs font-bold text-primary">PRIMEVECTOR STUDIO</Text>
-        </View>
       </ScrollView>
     </ScreenContainer>
   );
