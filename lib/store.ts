@@ -8,6 +8,7 @@ interface AppSettings {
   taxPercentage: number;
   lowStockThreshold: number;
   notificationsEnabled: boolean;
+  themePreference: 'light' | 'dark' | 'system';
 }
 
 interface AppStore {
@@ -44,6 +45,7 @@ const defaultSettings: AppSettings = {
   taxPercentage: 0,
   lowStockThreshold: 5,
   notificationsEnabled: true,
+  themePreference: 'system',
 };
 
 export const useAppStore = create<AppStore>((set) => ({

@@ -15,6 +15,7 @@ import { ScreenContainer } from '@/components/screen-container';
 import { useAppStore } from '@/lib/store';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/use-colors';
+import { useThemeContext } from '@/lib/theme-provider';
 import {
   createBackup,
   shareBackup,
@@ -49,6 +50,7 @@ export default function SettingsAdvanced() {
   // Advanced settings state
   const [enableNotifications, setEnableNotifications] = useState(settings.notificationsEnabled !== false);
   const [debugMode, setDebugMode] = useState(false);
+  const { themePreference, setThemePreference } = useThemeContext();
 
   useEffect(() => {
     if (activeTab === 'backups') {
@@ -394,6 +396,36 @@ export default function SettingsAdvanced() {
 
   const renderAdvancedTab = () => (
     <View className="gap-6 pb-8">
+      <View className="gap-2">
+        <Text className="text-sm font-semibold text-muted">Theme</Text>
+        <View className="flex-row gap-2">
+          {(['light', 'dark', 'system'] as const).map((theme) => (
+            <TouchableOpacity
+              key={theme}
+              onPress={() => setThemePreference(theme)}
+              className={`flex-1 py-3 px-3 rounded-lg border items-center ${
+                themePreference === theme
+                  ? 'bg-primary border-primary'
+                  : 'bg-surface border-border'
+              }`}
+            >
+              <MaterialIcons
+                name={theme === 'light' ? 'light-mode' : theme === 'dark' ? 'dark-mode' : 'brightness-auto'}
+                size={20}
+                color={themePreference === theme ? '#fff' : colors.foreground}
+              />
+              <Text
+                className={`text-xs font-semibold mt-1 capitalize ${
+                  themePreference === theme ? 'text-background' : 'text-foreground'
+                }`}
+              >
+                {theme}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
       <View className="bg-surface border border-border rounded-lg p-4 flex-row items-center justify-between">
         <View>
           <Text className="text-base font-semibold text-foreground">Enable Notifications</Text>
