@@ -4,16 +4,25 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "NODE_ENV": "production"
       }
     },
     "preview2": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "NODE_ENV": "production"
       }
     },
     "production": {
       "android": {
         "buildType": "aab"
+      },
+      "env": {
+        "NODE_ENV": "production"
       }
     }
   },
