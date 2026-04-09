@@ -474,11 +474,16 @@ export default function SettingsAdvanced() {
       <View className="bg-surface border border-border rounded-lg p-4">
         <Text className="text-sm font-semibold text-foreground mb-2">Features</Text>
         <Text className="text-xs text-muted leading-relaxed">
-          • Real-time inventory tracking{'\n'}
-          • Barcode scanning{'\n'}
-          • Sales management{'\n'}
-          • Financial reports{'\n'}
-          • Expense tracking{'\n'}
+          • Real-time inventory tracking{`
+`}
+          • Barcode scanning{`
+`}
+          • Sales management{`
+`}
+          • Financial reports{`
+`}
+          • Expense tracking{`
+`}
           • Offline functionality
         </Text>
       </View>
@@ -486,6 +491,12 @@ export default function SettingsAdvanced() {
       <View className="bg-surface border border-border rounded-lg p-4">
         <Text className="text-sm font-semibold text-foreground mb-2">Storage</Text>
         <Text className="text-xs text-muted">All data is stored locally on your device. No internet connection required.</Text>
+      </View>
+
+      {/* Footer Branding */}
+      <View className="items-center gap-2 pt-4 border-t border-border mt-4">
+        <Text className="text-xs text-muted">Powered by</Text>
+        <Text className="text-xs font-bold text-primary">PRIMEVECTOR STUDIO</Text>
       </View>
     </View>
   );
@@ -526,6 +537,12 @@ export default function SettingsAdvanced() {
         {activeTab === 'backups' && renderBackupsTab()}
         {activeTab === 'advanced' && renderAdvancedTab()}
         {activeTab === 'about' && renderAboutTab()}
+
+        {/* Footer Branding - All Tabs */}
+        <View className="items-center gap-1 py-4 border-t border-border mt-6">
+          <Text className="text-xs text-muted">Powered by</Text>
+          <Text className="text-xs font-bold text-primary">PRIMEVECTOR STUDIO</Text>
+        </View>
       </ScrollView>
     </ScreenContainer>
   );

@@ -56,18 +56,6 @@ export default function DashboardScreen() {
   return (
     <ScreenContainer className="flex-1 bg-background">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-4 pt-4 pb-6">
-        {/* Branding Header */}
-        <View className="flex-row items-center gap-3 mb-6 pb-4 border-b border-border">
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={{ width: 40, height: 40, borderRadius: 8 }}
-          />
-          <View className="flex-1">
-            <Text className="text-xs text-muted font-semibold">Powered by</Text>
-            <Text className="text-sm font-bold text-primary">PRIMEVECTOR STUDIO</Text>
-          </View>
-        </View>
-
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
           <View className="flex-1">
