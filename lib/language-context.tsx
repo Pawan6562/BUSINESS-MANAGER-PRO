@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { I18nManager } from 'react-native';
-import * as Updates from 'expo-updates';
+import { I18nManager, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Language, rtlLanguages, isRTL } from '../locales/index';
 
@@ -71,8 +70,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setLanguageState(newLanguage);
         setIsRTLState(newIsRTL);
 
-        // Reload app to apply RTL changes
-        await Updates.reloadAsync();
+        // Alert user to restart app
+        Alert.alert(
+          'Restart Required',
+          'Please close and reopen the app to apply language changes.',
+          [{ text: 'OK' }]
+        );
       } else {
         // No RTL change needed, just update language
         await AsyncStorage.setItem('app_language', newLanguage);
