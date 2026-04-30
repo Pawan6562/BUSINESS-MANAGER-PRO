@@ -141,6 +141,15 @@ export async function initializeDatabase() {
       );
     `);
 
+    // Migration: Add imageUri column if it doesn't exist
+    try {
+      await db.runAsync(
+        `ALTER TABLE products ADD COLUMN imageUri TEXT`
+      );
+    } catch (e) {
+      // Column already exists — this is expected, ignore error
+    }
+
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
