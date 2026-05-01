@@ -112,6 +112,14 @@ const config: ExpoConfig = {
         },
       },
     ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          kotlinVersion: "2.1.0",
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
